@@ -139,7 +139,7 @@ export function Component(): JSX.Element {
         <div className={styles.oneshotContainer}>
             <div className={styles.oneshotTopSection}>
                 <SettingsButton className={styles.settingsButton} onClick={() => setIsConfigPanelOpen(!isConfigPanelOpen)} />
-                <h1 className={styles.oneshotTitle}>Ask your data</h1>
+                <h1 className={styles.oneshotTitle}>Ask Qatalive</h1>
                 <div className={styles.oneshotQuestionInput}>
                     <QuestionInput placeholder="Example: What is QUBO Formulation?" disabled={isLoading} onSend={question => makeApiRequest(question)} />
                 </div>

@@ -25,7 +25,7 @@ const Layout = () => {
                                 </NavLink>
                             </li>
                             <li className={styles.headerNavLeftMargin}>
-                                <a href="https://aka.ms/entgptsearch" target={"_blank"} title="Github repository link">
+                                <a href="https://github.com/vishalgtingre/azure-search-openai-demo" target={"_blank"} title="Github repository link">
                                     <img
                                         src={github}
                                         alt="Github logo"
