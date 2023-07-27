@@ -42,9 +42,9 @@ If the question is not in English, translate the question to English before gene
 If you cannot generate a search query, return just the number 0.
 """
     query_prompt_few_shots = [
-        {'role' : USER, 'content' : 'What are my health plans?' },
+        {'role' : USER, 'content' : 'What is a MIS problem ?' },
         {'role' : ASSISTANT, 'content' : 'Show available health plans' },
-        {'role' : USER, 'content' : 'does my plan cover cardio?' },
+        {'role' : USER, 'content' : 'What is QUBO Formulation?' },
         {'role' : ASSISTANT, 'content' : 'Health plan cardio coverage' }
     ]
 
