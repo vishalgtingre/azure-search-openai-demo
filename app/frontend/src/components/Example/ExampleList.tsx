@@ -13,7 +13,7 @@ const EXAMPLES: ExampleModel[] = [
         value: "What is Modern Portfolio Theory?"
     },
     { text: "What is a Quadratic Assignment Problem ?", value: "What is a Quadratic Assignment Problem ?" },
-    { text: "What are Combinatorial optimization Problems", value: "What is the use of Quantum Computing?" }
+    { text: "What are Combinatorial optimization Problems", value: "What are Combinatorial optimization Problems ?" }
 ];
 
 interface Props {
