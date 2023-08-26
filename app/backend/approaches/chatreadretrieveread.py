@@ -11,6 +11,10 @@ from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_token_limit
 
 class ChatReadRetrieveReadApproach(Approach):
+
+    SPECIAL_TERMS = ['Invest money', 'maximise return', 'minimise risk', 'create portfolio', 
+                     'make me richer', 'Portfolio optimization', 'Portfolio optimisation', 
+                     'investment advice', 'investment advise']
     # Chat roles
     SYSTEM = "system"
     USER = "user"
@@ -158,6 +162,14 @@ If you cannot generate a search query, return just the number 0.
         chat_content = chat_completion.choices[0].message.content
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
+
+        if any(term.lower() in user_q.lower() for term in self.SPECIAL_TERMS):
+            # Step 3: Return the custom response
+            return {
+                "data_points": [],
+                "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
+                "thoughts": []
+            }
 
         return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
