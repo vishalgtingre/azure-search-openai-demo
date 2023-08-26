@@ -105,19 +105,6 @@ Thought: {agent_scratchpad}"""
         # Not great to keep this as instance state, won't work with interleaving (e.g. if using async), but keeps the example simple
         self.results = None
 
-        # Step 2: Check if the question contains any of the special terms
-        if any(term.lower() in q.lower() for term in self.SPECIAL_TERMS):
-            # Step 3: Return the custom response
-            return {
-                "data_points": [],
-                "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
-                "thoughts": []
-            }
-        return {
-                "data_points": [],
-                "answer": "Sorry Saerch Term not Found.",
-                "thoughts": []
-                }
         # Use to capture thought process during iterations
         cb_handler = HtmlCallbackHandler()
         cb_manager = CallbackManager(handlers=[cb_handler])
@@ -145,8 +132,21 @@ Thought: {agent_scratchpad}"""
                 
         # Remove references to tool names that might be confused with a citation
         result = result.replace("[CognitiveSearch]", "").replace("[Employee]", "")
+         # Step 2: Check if the question contains any of the special terms
 
-        return {"data_points": self.results or [], "answer": result, "thoughts": cb_handler.get_and_reset_log()}
+        if any(term.lower() in q.lower() for term in self.SPECIAL_TERMS):
+            # Step 3: Return the custom response
+            return {
+                "data_points": [],
+                "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
+                "thoughts": []
+            }
+        return {
+                "data_points": [],
+                "answer": "Sorry Saerch Term not Found.",
+                "thoughts": []
+                }
+        return {"data_points": self.results or [], "answer": "test this result", "thoughts": cb_handler.get_and_reset_log()}
 
 class EmployeeInfoTool(CsvLookupTool):
     employee_name: str = ""
