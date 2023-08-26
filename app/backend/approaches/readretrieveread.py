@@ -108,7 +108,7 @@ Thought: {agent_scratchpad}"""
                         func=lambda q: self.retrieve(q, overrides), 
                         description=self.CognitiveSearchToolDescription,
                         callbacks=cb_manager)
-        employee_tool = EmployeeInfoTool("Modern Portfolio Theory", callbacks=cb_manager)
+        employee_tool = EmployeeInfoTool("Key Terms", callbacks=cb_manager)
         tools = [acs_tool, employee_tool]
 
         prompt = ZeroShotAgent.create_prompt(
@@ -135,8 +135,8 @@ class EmployeeInfoTool(CsvLookupTool):
 
     def __init__(self, employee_name: str, callbacks: Callbacks = None):
         super().__init__(filename="data/Quantum_Formulae.csv", 
-                         key_field="Framework", 
-                         name="Modern Portfolio Theory", 
+                         key_field="Key Terms", 
+                         name="Invest money", 
                          description="useful for answering questions about the QUBO Formulation, their Mathematical Formulation, Framework, Domain, Algorithms and other related information",
                          callbacks=callbacks)
         self.func = self.employee_info
