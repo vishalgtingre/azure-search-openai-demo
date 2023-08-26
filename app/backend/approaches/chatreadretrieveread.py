@@ -76,6 +76,12 @@ If you cannot generate a search query, return just the number 0.
         'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
         'investment advice', 'investment advise']
 
+        # Extract the latest user message
+        last_user_message = history[-1]["user"].lower()
+
+        if any(keyword.lower() in last_user_message for keyword in investment_keywords):
+            return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}    
+
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
         messages = self.get_messages_from_history(
             self.query_prompt_template,
@@ -167,9 +173,6 @@ If you cannot generate a search query, return just the number 0.
         chat_content = chat_completion.choices[0].message.content
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
-
-        if any(keyword.lower() in last_user_question for keyword in investment_keywords):
-            return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}
 
         return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
