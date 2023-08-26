@@ -71,6 +71,11 @@ If you cannot generate a search query, return just the number 0.
 
         user_q = 'Generate search query for: ' + history[-1]["user"]
 
+        investment_keywords = [
+        'Invest money', 'maximise return', 'minimise risk', 'create portfolio',
+        'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
+        'investment advice', 'investment advise']
+
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
         messages = self.get_messages_from_history(
             self.query_prompt_template,
@@ -163,13 +168,8 @@ If you cannot generate a search query, return just the number 0.
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
-        if any(term.lower() in user_q.lower() for term in self.SPECIAL_TERMS):
-            # Step 3: Return the custom response
-            return {
-                "data_points": [],
-                "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
-                "thoughts": []
-            }
+        if any(keyword.lower() in last_user_question for keyword in investment_keywords):
+            return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}
 
         return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
