@@ -22,7 +22,11 @@ class ReadRetrieveReadApproach(Approach):
 
     [1] E. Karpas, et al. arXiv:2205.00445
     """
-
+    # Step 1: Define the terms to check for
+    SPECIAL_TERMS = ['Invest money', 'maximise return', 'minimise risk', 'create portfolio', 
+                     'make me richer', 'Portfolio optimization', 'Portfolio optimisation', 
+                     'investment advice', 'investment advise']
+    
     template_prefix = \
 "You are an intelligent assistant helping Qatalive Inc users with the quantum computing related questions and questions related to business problems which could be solved using qunatum computing. " \
 "Answer the question using only the data provided in the information sources below. " \
@@ -43,6 +47,7 @@ Question: {input}
 Thought: {agent_scratchpad}"""    
 
     CognitiveSearchToolDescription = "useful for searching the different quantum computing solutions and architecture information which could be used for business problems such as portfolio optimization, vehicle routing and etc."
+
 
     def __init__(self, search_client: SearchClient, openai_deployment: str, embedding_deployment: str, sourcepage_field: str, content_field: str):
         self.search_client = search_client
@@ -100,6 +105,14 @@ Thought: {agent_scratchpad}"""
         # Not great to keep this as instance state, won't work with interleaving (e.g. if using async), but keeps the example simple
         self.results = None
 
+        # Step 2: Check if the question contains any of the special terms
+        if any(term.lower() in q.lower() for term in self.SPECIAL_TERMS):
+            # Step 3: Return the custom response
+            return {
+                "data_points": [],
+                "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
+                "thoughts": []
+            }
         # Use to capture thought process during iterations
         cb_handler = HtmlCallbackHandler()
         cb_manager = CallbackManager(handlers=[cb_handler])
