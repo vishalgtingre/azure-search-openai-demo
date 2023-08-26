@@ -113,6 +113,11 @@ Thought: {agent_scratchpad}"""
                 "answer": "Sure I can help, please specify your budget and list of assets you want to invest in.",
                 "thoughts": []
             }
+        return {
+                "data_points": [],
+                "answer": "Sorry Saerch Term not Found.",
+                "thoughts": []
+                }
         # Use to capture thought process during iterations
         cb_handler = HtmlCallbackHandler()
         cb_manager = CallbackManager(handlers=[cb_handler])
