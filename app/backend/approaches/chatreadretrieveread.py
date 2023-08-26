@@ -83,7 +83,7 @@ If you cannot generate a search query, return just the number 0.
             ##return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}    
             results = ["Source: This is a guided approach","Approach: Powered by Qatalive"]
             query_text = ["First Question"]
-            msg_to_display = ["The Message is for guided approach"]
+            msg_to_display = "The Message is for our guided approach"
             return {"data_points": results, "answer": "Sure I can help, please specify your budget and list of assets you want to invest in", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
