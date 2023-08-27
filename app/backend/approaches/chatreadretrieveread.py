@@ -67,6 +67,7 @@ If you cannot generate a search query, return just the number 0.
         use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
         top = overrides.get("top") or 3
         exclude_category = overrides.get("exclude_category") or None
+        expect_code_output = overrides.get("expect_code_output") or False
         filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
 
         user_q = 'Generate search query for: ' + history[-1]["user"]
@@ -178,6 +179,8 @@ If you cannot generate a search query, return just the number 0.
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
+        if expect_code_output:
+            chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
         #return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
         return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
