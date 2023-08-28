@@ -60,6 +60,8 @@ print("Code Extracted from message :   start code ----- " + code_from_msg)
 
 print("Code Extracted from message :   start code ----- " + codetoexecute)
 
-
+from chat_code_utils import extract_code_from_chat,execute_extracted_code
+data = extract_code_from_chat()
 data = execute_extracted_code(code_from_msg)
 print(data)
+

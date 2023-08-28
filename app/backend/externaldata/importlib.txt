@@ -12,3 +12,6 @@ from dimod import quicksum
 from dimod import ConstrainedQuadraticModel
 import yfinance as yf
 from dwave.system import LeapHybridDQMSampler, LeapHybridCQMSampler
+
+# print ("Start Code")
+

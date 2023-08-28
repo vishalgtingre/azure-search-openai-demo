@@ -191,26 +191,22 @@ If you cannot generate a search query, return just the number 0.
 
             codetoexecute = importfile_content + code_from_chat_content
 
-            codeoutput = execute_extracted_code(codetoexecute)
-
-            if codetoexecute:
-                for code_block in code_blocks:
-                    try:
+            if code_from_chat_content:
+                try:
+                    codeoutput = execute_extracted_code(codetoexecute)
                         # Execute the code block
-                        exec_globals = {}
-                        exec_locals = {}
-                        exec(code_block, exec_globals, exec_locals)
-                        
+                        #exec_globals = {}
+                        #exec_locals = {}
+                        #exec(code_block, exec_globals, exec_locals)
                         # Capture the standard output of the executed code
-                        captured_output = io.StringIO()
-                        sys.stdout = captured_output
-                        exec_locals['__builtins__']['print'] = lambda *args, **kwargs: builtins.print(*args, **kwargs, file=captured_output)
-                        exec(code_block, exec_globals, exec_locals)
-                        sys.stdout = sys.__stdout__
-                        
+                    captured_output = io.StringIO()
+                    sys.stdout = captured_output
+                    exec_locals['__builtins__']['print'] = lambda *args, **kwargs: builtins.print(*args, **kwargs, file=captured_output)
+                    exec(code_block, exec_globals, exec_locals)
+                    sys.stdout = sys.__stdout__
                         # Replace the code block with captured output
-                        chat_content = chat_content.replace('```' + code_block + '```', '```' + captured_output.getvalue() + '```')
-                    except Exception as e:
+                    chat_content = chat_content.replace('```' + code_block + '```', '```' + captured_output.getvalue() + '```')
+                except Exception as e:
                         # Handle any exceptions that occur during code execution
                         error_message = f"Error during code execution: {str(e)}"
                         chat_content = chat_content.replace('```' + code_block + '```', '```' + error_message + '```')
