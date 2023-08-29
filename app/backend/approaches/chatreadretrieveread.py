@@ -2,7 +2,6 @@ from typing import Any, Sequence
 
 import openai
 import tiktoken
-import re
 from azure.search.documents import SearchClient
 from azure.search.documents.models import QueryType
 from approaches.approach import Approach
@@ -10,9 +9,6 @@ from text import nonewlines
 
 from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_token_limit
-
-from externaldata.financedata import extract_code_from_message , execute_extracted_code
-
 
 class ChatReadRetrieveReadApproach(Approach):
 
@@ -184,35 +180,10 @@ If you cannot generate a search query, return just the number 0.
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
         if expect_code_output:
-            # Check if chat_content contains code blocks
-            code_from_chat_content = extract_code_from_message(chat_content)
-            with open('importlib.txt', 'r') as file:
-                importfile_content = file.read()
-
-            codetoexecute = importfile_content + code_from_chat_content
-
-            if code_from_chat_content:
-                try:
-                    codeoutput = execute_extracted_code(codetoexecute)
-                        # Execute the code block
-                        #exec_globals = {}
-                        #exec_locals = {}
-                        #exec(code_block, exec_globals, exec_locals)
-                        # Capture the standard output of the executed code
-                    captured_output = io.StringIO()
-                    sys.stdout = captured_output
-                    exec_locals['__builtins__']['print'] = lambda *args, **kwargs: builtins.print(*args, **kwargs, file=captured_output)
-                    exec(code_block, exec_globals, exec_locals)
-                    sys.stdout = sys.__stdout__
-                        # Replace the code block with captured output
-                    chat_content = chat_content.replace('```' + code_block + '```', '```' + captured_output.getvalue() + '```')
-                except Exception as e:
-                        # Handle any exceptions that occur during code execution
-                        error_message = f"Error during code execution: {str(e)}"
-                        chat_content = chat_content.replace('```' + code_block + '```', '```' + error_message + '```')
-        
+            chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
+        #return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
         return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
-
+    
     def get_messages_from_history(self, system_prompt: str, model_id: str, history: Sequence[dict[str, str]], user_conv: str, few_shots = [], max_tokens: int = 4096) -> []:
         message_builder = MessageBuilder(system_prompt, model_id)
 
