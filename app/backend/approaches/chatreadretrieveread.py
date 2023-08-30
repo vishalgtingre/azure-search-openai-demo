@@ -184,19 +184,20 @@ If you cannot generate a search query, return just the number 0.
         
         if expect_code_output:
             results.append(chat_content)
-            chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
+            chat_content_orig = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
+            chat_content = "As per the QataliveBook data source, the code for getting External Data Source, calculating Mean Return and Covariance Matrix for Modern Portfolio Theory, where the budget is 1000 EUR and the list of assets includes INTU, ISRG, HAS, and saving the output of External Data as extData, Mean Return as meanReturn, Covariance Matrix as covMatrix is as follows:\n\n```\nimport pandas as pd\nimport yfinance as yf\n\n# Define the list of assets and the budget\nassets = ['INTU', 'ISRG', 'HAS']\nbudget = 1000\n\n# Get the OHLC data for the assets\nextData = yf.download(assets, start='2022-01-01', end='2022-01-31')\n\n# Calculate the mean returns and covariance matrix\nreturns = pd.DataFrame.pct_change(extData['Adj Close'])\nmeanReturn = returns.mean()\ncovMatrix = returns.cov()\n```\n\nNote that this code uses the `yfinance` library to download the OHLC data for the specified assets from Yahoo Finance, calculates the percentage change in the closing prices to get the returns, and then calculates the mean return and covariance matrix for the portfolio."
             code_from_message = extract_code_from_message(chat_content)
             results.append(code_from_message)
             chat_content = " 1. Extracted the Auto generated Code "
-            code_to_execute = appendimportsandprints (code_from_message)
+            code_to_execute = appendimportsandprints(code_from_message)
             results.append(code_to_execute)
             chat_content = chat_content + " 2. Appended Imports and Output Statements"
             code_output_result = execute_extracted_code(code_to_execute)
-            chat_content = code_output_result + " 3. Result from the extracted code -------"
+            chat_content =  " 3. Result from the extracted code -------  " + code_output_result
             results.append(chat_content)
             return {"data_points": results, "answer": code_output_result, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
         
-        return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
+        return {"data_points": results, "answer": chat_content, "thoughts": f" Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
     def get_messages_from_history(self, system_prompt: str, model_id: str, history: Sequence[dict[str, str]], user_conv: str, few_shots = [], max_tokens: int = 4096) -> []:
         message_builder = MessageBuilder(system_prompt, model_id)

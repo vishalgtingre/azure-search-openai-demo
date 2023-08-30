@@ -1,11 +1,4 @@
 
-import yfinance as yf
-import numpy as np
-from itertools import product
-import json
-import random
-import numpy as np
-import pandas as pd
 import pandas as pd
 import yfinance as yf
 
@@ -20,8 +13,3 @@ extData = yf.download(assets, start='2022-01-01', end='2022-01-31')
 returns = pd.DataFrame.pct_change(extData['Adj Close'])
 meanReturn = returns.mean()
 covMatrix = returns.cov()
-# Print the results
-print(extData) 
-print(meanReturn)
-print(covMatrix)
-

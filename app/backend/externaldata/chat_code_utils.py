@@ -62,9 +62,27 @@ def appendimportsandprints(code_from_msg):
     try:
         with open('importlib.txt', 'r') as import_file:
             importfile_content = import_file.read()
+        importfile_content = '''
+import yfinance as yf
+import numpy as np
+from itertools import product
+import json
+import random
+import numpy as np
+import pandas as pd
+'''
 
         with open('printoutput.txt', 'r') as print_file:
             printfile_content = print_file.read()
+        
+        printfile_content = '''
+# Print the results
+print(extData) 
+print(meanReturn)
+print(covMatrix)
+
+'''
+
         
         codetoexecute = importfile_content + code_from_msg + printfile_content
         
