@@ -21,7 +21,8 @@ returns = pd.DataFrame.pct_change(extData['Adj Close'])
 meanReturn = returns.mean()
 covMatrix = returns.cov()
 # Print the results
-print(extData) 
+print("Mean Return")
 print(meanReturn)
+print("Covariance Matrix")
 print(covMatrix)
 

@@ -77,8 +77,9 @@ import pandas as pd
         
         printfile_content = '''
 # Print the results
-print(extData) 
+print("Mean Return")
 print(meanReturn)
+print("Covariance Matrix")
 print(covMatrix)
 
 '''
