@@ -181,12 +181,21 @@ If you cannot generate a search query, return just the number 0.
 
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
+        
         if expect_code_output:
+            results.append(chat_content)
             chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
-            codemessage = extract_code_from_message(chat_content)
-            codemessage = appendimportsandprints (codemessage)
-            chat_content = execute_extracted_code(codemessage)
-        #return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
+            code_from_message = extract_code_from_message(chat_content)
+            results.append(code_from_message)
+            chat_content = " 1. Extracted the Auto generated Code "
+            code_to_execute = appendimportsandprints (code_from_message)
+            results.append(code_to_execute)
+            chat_content = chat_content + " 2. Appended Imports and Output Statements"
+            code_output_result = execute_extracted_code(code_to_execute)
+            chat_content = code_output_result + " 3. Result from the extracted code -------"
+            results.append(chat_content)
+            return {"data_points": results, "answer": code_output_result, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
+        
         return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
     def get_messages_from_history(self, system_prompt: str, model_id: str, history: Sequence[dict[str, str]], user_conv: str, few_shots = [], max_tokens: int = 4096) -> []:

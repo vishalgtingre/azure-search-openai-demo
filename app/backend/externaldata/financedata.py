@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from chat_code_utils import execute_extracted_code , extract_code_from_message , appendimportsandprints
 
 
 def extract_and_align_code(text):
@@ -19,24 +20,23 @@ def extract_and_align_code(text):
 with open('samplecode.txt', 'r') as file:
     file_content = file.read()
 
-print("Original message : ---- " + file_content)
+#print("Original message : ---- " + file_content)
+codemessage = extract_code_from_message(file_content)
+chat_content_str = ""
+chat_content_str += "1. Extracted the Auto generated Code\n"
+codemessage = appendimportsandprints(codemessage)
+chat_content_str += "2. Appended Imports and Output Statements\n"
+chat_content = execute_extracted_code(codemessage)
+chat_content_str += "3. Result from the extracted code -------\n"
 
-from chat_code_utils import execute_extracted_code , extract_code_from_message , appendimportsandprints
-
-code_from_msg = extract_code_from_message(file_content)
-
+# Print the entire chat content including steps
+print(chat_content_str + chat_content)
 #with open('importlib.txt', 'r') as file:
 #    importfile_content = file.read()
-
 #with open('printoutput.txt','r') as file:
 #    printfile_content = file.read()
-
-codetoexecute = appendimportsandprints(code_from_msg)
-
-print("Code Extracted from message :   start code ----- " + code_from_msg)
-print("Code Extracted from message :   start code ----- " + codetoexecute)
-
-from chat_code_utils import execute_extracted_code
-data = execute_extracted_code(codetoexecute)
-print(data)
+#print("Code Extracted from message :   start code ----- " + codemessage)
+#print("Code Extracted from message :   start code ----- " + codemessage)
+#from chat_code_utils import execute_extracted_code
+#data = execute_extracted_code(codetoexecute)
 
