@@ -1,0 +1,5 @@
+
+# Print the results
+print(extData) 
+print(meanReturn)
+print(covMatrix)

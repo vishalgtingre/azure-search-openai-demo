@@ -38,3 +38,9 @@ solution = sampler.sample_cqm(cqm)
 
 # Print the results
 print(solution)
+
+# Print the results
+with open(output_file, 'programoutput.txt') as f:
+    print(extData, file=f) 
+    print(meanReturn, file=f)
+    print(covMatrix, file=f)

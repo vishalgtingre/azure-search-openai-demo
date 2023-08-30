@@ -10,6 +10,8 @@ from text import nonewlines
 from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_token_limit
 
+from externaldata import extract_code_from_message , appendimportsandprints, execute_extracted_code
+
 class ChatReadRetrieveReadApproach(Approach):
 
     SPECIAL_TERMS = ['Invest money', 'maximise return', 'minimise risk', 'create portfolio', 
@@ -180,7 +182,10 @@ If you cannot generate a search query, return just the number 0.
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
         if expect_code_output:
-            chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
+            codemessage = extract_code_from_message(chat_content)
+            codemessage = appendimportsandprints (codemessage)
+            chat_content = execute_extracted_code(codemessage)
+            #chat_content = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
         #return {"data_points": results, "answer": "Test the result from chat read write", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
         return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
     
