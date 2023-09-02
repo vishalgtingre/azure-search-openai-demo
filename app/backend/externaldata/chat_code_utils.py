@@ -31,8 +31,6 @@ def extract_code_from_chat(message):
 
     return code_blocks
 
-import re
-
 def extract_code_from_message(message):
     try:
         orig_code_match = re.search(r'```(.*?)```', message, re.DOTALL)
@@ -70,6 +68,7 @@ import json
 import random
 import numpy as np
 import pandas as pd
+import sys
 '''
 
         with open('printoutput.txt', 'r') as print_file:
@@ -77,11 +76,11 @@ import pandas as pd
         
         printfile_content = '''
 # Print the results
-print("Mean Return")
+meanReturn = '' 
+covMatrix = ''
+print(extData)
 print(meanReturn)
-print("Covariance Matrix")
 print(covMatrix)
-
 '''
 
         

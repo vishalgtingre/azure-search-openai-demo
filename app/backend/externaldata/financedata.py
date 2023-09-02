@@ -17,7 +17,7 @@ def extract_and_align_code(text):
     return aligned_code
 
 # Program start
-with open('samplecode.txt', 'r') as file:
+with open('testsamplecode.txt', 'r') as file:
     file_content = file.read()
 
 #print("Original message : ---- " + file_content)

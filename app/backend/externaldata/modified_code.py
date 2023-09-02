@@ -1,15 +1,15 @@
 
-import pandas as pd
 import yfinance as yf
+import pandas as pd
 
-# Define the list of assets and the budget
-assets = ['INTU', 'ISRG', 'HAS']
-budget = 1000
+tickers = ['MSFT', 'AMZN', 'AAPL', 'NFLX', 'GOOG']
+start_date = '2022-01-01'
+end_date = '2022-12-31'
 
-# Get the OHLC data for the assets
-extData = yf.download(assets, start='2022-01-01', end='2022-01-31')
+extData = pd.DataFrame()
+for ticker in tickers:
+    temp_data = yf.download(ticker, start=start_date, end=end_date)
+    temp_data['Ticker'] = ticker
+    extData = pd.concat([extData, temp_data])
 
-# Calculate the mean returns and covariance matrix
-returns = pd.DataFrame.pct_change(extData['Adj Close'])
-meanReturn = returns.mean()
-covMatrix = returns.cov()
+extData = extData.reset_index()

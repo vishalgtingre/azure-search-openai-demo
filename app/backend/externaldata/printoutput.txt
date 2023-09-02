@@ -1,5 +1,7 @@
 
 # Print the results
-print(extData) 
+meanReturn = '' 
+covMatrix = ''
+print(extData)
 print(meanReturn)
 print(covMatrix)
