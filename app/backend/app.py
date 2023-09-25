@@ -37,7 +37,7 @@ azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential 
 # Used by the OpenAI SDK
 openai.api_type = "azure"
 openai.api_base = f"https://{AZURE_OPENAI_SERVICE}.openai.azure.com"
-openai.api_version = "2023-05-15"
+openai.api_version = "2023-07-01-preview"
 
 # Comment these two lines out if using keys, set your API key in the OPENAI_API_KEY environment variable instead
 openai.api_type = "azure_ad"
