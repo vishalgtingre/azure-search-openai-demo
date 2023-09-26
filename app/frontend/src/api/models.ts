@@ -21,13 +21,17 @@ export type AskRequestOverrides = {
     promptTemplatePrefix?: string;
     promptTemplateSuffix?: string;
     suggestFollowupQuestions?: boolean;
+//=======
     expectcodeoutput?: boolean;
+    useOidSecurityFilter?: boolean;
+    useGroupsSecurityFilter?: boolean;
 };
 
 export type AskRequest = {
     question: string;
     approach: Approaches;
     overrides?: AskRequestOverrides;
+    idToken?: string;
 };
 
 export type AskResponse = {
@@ -46,4 +50,6 @@ export type ChatRequest = {
     history: ChatTurn[];
     approach: Approaches;
     overrides?: AskRequestOverrides;
+    idToken?: string;
+    shouldStream?: boolean;
 };

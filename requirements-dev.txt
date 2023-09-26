@@ -3,5 +3,10 @@
 ruff
 black
 pytest
+pytest-asyncio
+pytest-snapshot
 coverage
 pytest-cov
+pre-commit
+locust
+azure-storage-file-datalake==12.12.0
