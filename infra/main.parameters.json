@@ -54,7 +54,7 @@
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
     },
     "storageSkuName": {
-      "value": "${AZURE_STORAGE_SKU=Standard_LRS}"
+      "value": "${AZURE_STORAGE_SKU=Standard_ZRS}"
     },
     "chatGptDeploymentName": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"

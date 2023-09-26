@@ -90,8 +90,8 @@ If you cannot generate a search query, return just the number 0.
         has_vector = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
         use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
         top = overrides.get("top", 3)
-        exclude_category = overrides.get("exclude_category") or None
-        expect_code_output = overrides.get("expect_code_output") or False
+        #exclude_category = overrides.get("exclude_category") or None
+        #expect_code_output = overrides.get("expect_code_output") or False
         #filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
         filter = self.build_filter(overrides, auth_claims)
 
@@ -111,24 +111,70 @@ If you cannot generate a search query, return just the number 0.
                     },
                     "required": ["search_query"],
                 },
-            }
-        ]
+            },
+            {
+            "name": "get_current_time",
+            "description": "Get the current time in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The location name. The pytz is used to get the timezone for that location. Location names should be in a format like America/New_York, Asia/Bangkok, Europe/London",
+                    }
+                },
+                "required": ["location"],
+            },
+        },
+        {
+            "name": "get_stock_market_data",
+            "description": "Get the stock market data for a given index",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "index": {
+                        "type": "string",
+                        "enum": ["S&P 500", "NASDAQ Composite", "Dow Jones Industrial Average", "Financial Times Stock Exchange 100 Index"]},
+                },
+                "required": ["index"],
+            },    
+        },
+        {
+            "name": "calculator",
+            "description": "A simple calculator used to perform basic arithmetic operations",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "num1": {"type": "number"},
+                    "num2": {"type": "number"},
+                    "operator": {"type": "string", "enum": ["+", "-", "*", "/", "**", "sqrt"]},
+                },
+                "required": ["num1", "num2", "operator"],
+            },
+        }
+    ]
 
-        investment_keywords = [
-        'Invest money', 'maximise return', 'minimise risk', 'create portfolio',
-        'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
-        'investment advice', 'investment advise']
+        available_functions = {
+            "get_current_time": get_current_time,
+            "get_stock_market_data": get_stock_market_data,
+            "calculator": calculator,
+        } 
+
+        #investment_keywords = [
+        #'Invest money', 'maximise return', 'minimise risk', 'create portfolio',
+        #'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
+        #'investment advice', 'investment advise']
 
         # Extract the latest user message
         last_user_message = history[-1]["user"].lower()
 
-        if any(keyword.lower() in last_user_message for keyword in investment_keywords):
+        '''if any(keyword.lower() in last_user_message for keyword in investment_keywords):
             ##return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}
             results = ["Source: This is a guided approach","Approach: Powered by Qatalive"]
             query_text = ["First Question"]
             msg_to_display = "The Message is for our guided approach"
             return {"data_points": results, "answer": "Sure I can help, please specify your budget and list of assets you want to invest in the following Investment form", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
-
+        '''
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
         messages = self.get_messages_from_history(
             self.query_prompt_template,
@@ -268,25 +314,6 @@ If you cannot generate a search query, return just the number 0.
             if event["choices"]:
                 yield event
 
-
-        if expect_code_output:
-            results.append(chat_content)
-            chat_content_orig = " Your request is in process and We are executing the code generated based on your input by qatalive AI "
-            chat_content = "As per the QataliveBook data source, the code for getting External Data Source, calculating Mean Return and Covariance Matrix for Modern Portfolio Theory, where the budget is 1000 EUR and the list of assets includes INTU, ISRG, HAS, and saving the output of External Data as extData, Mean Return as meanReturn, Covariance Matrix as covMatrix is as follows:\n\n```\nimport pandas as pd\nimport yfinance as yf\n\n# Define the list of assets and the budget\nassets = ['INTU', 'ISRG', 'HAS']\nbudget = 1000\n\n# Get the OHLC data for the assets\nextData = yf.download(assets, start='2022-01-01', end='2022-01-31')\n\n# Calculate the mean returns and covariance matrix\nreturns = pd.DataFrame.pct_change(extData['Adj Close'])\nmeanReturn = returns.mean()\ncovMatrix = returns.cov()\n```\n\nNote that this code uses the `yfinance` library to download the OHLC data for the specified assets from Yahoo Finance, calculates the percentage change in the closing prices to get the returns, and then calculates the mean return and covariance matrix for the portfolio."
-            code_from_message = extract_code_from_message(chat_content)
-            results.append(code_from_message)
-            chat_content = " 1. Extracted the Auto generated Code "
-            code_to_execute = appendimportsandprints(code_from_message)
-            results.append(code_to_execute)
-            chat_content = chat_content + " 2. Appended Imports and Output Statements"
-            code_output_result = execute_extracted_code(code_to_execute)
-            chat_content =  " 3. Result from the extracted code -------  " + code_output_result
-            results.append(chat_content)
-            return {"data_points": results, "answer": code_output_result, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
-
-        return {"data_points": results, "answer": chat_content, "thoughts": f" Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
-
-    #def get_messages_from_history(self, system_prompt: str, model_id: str, history: Sequence[dict[str, str]], user_conv: str, few_shots = [], max_tokens: int = 4096) -> []:
     def get_messages_from_history(
             self,
             system_prompt: str,
@@ -330,3 +357,62 @@ If you cannot generate a search query, return just the number 0.
             if query_text.strip() != self.NO_RESPONSE:
                 return query_text
         return user_query
+
+import pytz
+from datetime import datetime
+def get_current_time(location):
+    try:
+        # Get the timezone for the city
+        timezone = pytz.timezone(location)
+
+        # Get the current time in the timezone
+        now = datetime.now(timezone)
+        current_time = now.strftime("%I:%M:%S %p")
+
+        return current_time
+    except:
+        return "Sorry, I couldn't find the timezone for that location."
+
+import math
+
+def calculator(num1, num2, operator):
+    if operator == '+':
+        return str(num1 + num2)
+    elif operator == '-':
+        return str(num1 - num2)
+    elif operator == '*':
+        return str(num1 * num2)
+    elif operator == '/':
+        return str(num1 / num2)
+    elif operator == '**':
+        return str(num1 ** num2)
+    elif operator == 'sqrt':
+        return str(math.sqrt(num1))
+    else:
+        return "Invalid operator"
+
+import pandas as pd
+import json
+
+def get_stock_market_data(index):
+    available_indices = ["S&P 500", "NASDAQ Composite", "Dow Jones Industrial Average", "Financial Times Stock Exchange 100 Index"]
+
+    if index not in available_indices:
+        return "Invalid index. Please choose from 'S&P 500', 'NASDAQ Composite', 'Dow Jones Industrial Average', 'Financial Times Stock Exchange 100 Index'."
+
+    # Read the CSV file
+    data = pd.read_csv('stock_data.csv')
+
+    # Filter data for the given index
+    data_filtered = data[data['Index'] == index]
+
+    # Remove 'Index' column
+    data_filtered = data_filtered.drop(columns=['Index'])
+
+    # Convert the DataFrame into a dictionary
+    hist_dict = data_filtered.to_dict()
+
+    for key, value_dict in hist_dict.items():
+        hist_dict[key] = {k: v for k, v in value_dict.items()}
+
+    return json.dumps(hist_dict)

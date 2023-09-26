@@ -32,16 +32,16 @@ param storageSkuName string // Set in main.parameters.json
 @allowed(['azure', 'openai'])
 param openAiHost string // Set in main.parameters.json
 
-param openAiServiceName string = ''
+param openAiServiceName string = 'qat-oai-eastus'
 param openAiResourceGroupName string = ''
 @description('Location for the OpenAI resource group')
-@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast','westeurope', 'northcentralus'])
+@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus'])
 @metadata({
   azd: {
     type: 'location'
   }
 })
-param openAiResourceGroupLocation string
+param openAiResourceGroupLocation string ='eastus'
 
 param openAiSkuName string = 'S0'
 
