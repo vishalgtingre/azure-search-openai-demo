@@ -32,7 +32,7 @@ export async function askApi(options: AskRequest): Promise<AskResponse> {
                 prompt_template_prefix: options.overrides?.promptTemplatePrefix,
                 prompt_template_suffix: options.overrides?.promptTemplateSuffix,
                 exclude_category: options.overrides?.excludeCategory,
-                expect_code_output: options.overrides?.expectcodeoutput
+                expect_code_output: options.overrides?.expectcodeoutput,
                 //latest change
                 use_oid_security_filter: options.overrides?.useOidSecurityFilter,
                 use_groups_security_filter: options.overrides?.useGroupsSecurityFilter
@@ -69,7 +69,7 @@ export async function chatApi(options: ChatRequest): Promise<Response> {
                 exclude_category: options.overrides?.excludeCategory,
                 suggest_followup_questions: options.overrides?.suggestFollowupQuestions,
                 //latest change
-                expect_code_output: options.overrides?.expectcodeoutput
+                expect_code_output: options.overrides?.expectcodeoutput,
                 use_oid_security_filter: options.overrides?.useOidSecurityFilter,
                 use_groups_security_filter: options.overrides?.useGroupsSecurityFilter
             }
