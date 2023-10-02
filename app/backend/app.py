@@ -138,6 +138,8 @@ async def format_as_ndjson(r: AsyncGenerator[dict, None]) -> AsyncGenerator[str,
 async def chat_stream():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
+    print("Iam in app.py in chat stream")
+    
     request_json = await request.get_json()
     auth_helper = current_app.config[CONFIG_AUTH_CLIENT]
     auth_claims = await auth_helper.get_auth_claims_if_enabled(request.headers)
@@ -145,12 +147,14 @@ async def chat_stream():
     try:
         impl = current_app.config[CONFIG_CHAT_APPROACHES].get(approach)
         if not impl:
+            print("I am in impl for chat")
             return jsonify({"error": "unknown approach"}), 400
         response_generator = impl.run_with_streaming(
             request_json["history"], request_json.get("overrides", {}), auth_claims
         )
         response = await make_response(format_as_ndjson(response_generator))
         response.timeout = None  # type: ignore
+        print ("Before response in app")
         return response
     except Exception as e:
         logging.exception("Exception in /chat")
