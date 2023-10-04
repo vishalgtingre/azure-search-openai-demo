@@ -294,7 +294,6 @@ If you cannot generate a search query, return just the number 0.
         if response_message.get("function_call"):
             print("Recommended Function call:")
             print(response_message.get("function_call"))
-            print()
             
             # Step 3: call the function
             # Note: the JSON response may not always be valid; be sure to handle errors
@@ -315,7 +314,7 @@ If you cannot generate a search query, return just the number 0.
             print("Output of function call:")
             print(function_response)
             query_text = function_response
-            
+          
             messages.append(
                 {
                     "role": response_message["role"],
@@ -335,27 +334,29 @@ If you cannot generate a search query, return just the number 0.
                     "content": function_response,
                 }
             )  # extend conversation with function response
-
+            
             print("Messages in second request:")
             for message in messages:
                 print(message)
             
 
             msg_to_display = "\n\n".join([str(message) for message in messages])
-            print(msg_to_display)
+            #print(msg_to_display)
             extra_info = {
             "data_points": function_name,
             "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>"
             + msg_to_display.replace("\n", "<br>"),
             }
 
-            #second_response = openai.ChatCompletion.create(
-            #    messages=messages,
-            #    deployment_id=self.chatgpt_deployment
-            #)  # get a new response from GPT where it can see the function response
+            second_response = openai.ChatCompletion.create(
+               messages=messages,
+                deployment_id=self.chatgpt_deployment
+            )  # get a new response from GPT where it can see the function response
 
             #return second_response
-
+            
+            print ("second_response : ")
+            print (second_response["choices"][0]["message"])
 
             chat_coroutine = openai.ChatCompletion.acreate(
             **chatgpt_args,
@@ -366,6 +367,7 @@ If you cannot generate a search query, return just the number 0.
             n=1,
             stream=should_stream,
             )
+            print (chat_completion)
             return (extra_info, chat_coroutine)
 
         else:
@@ -463,7 +465,7 @@ If you cannot generate a search query, return just the number 0.
                 temperature=overrides.get("temperature") or 0.7,
                 max_tokens=1024,
                 n=1,
-                stream=False,
+                stream=should_stream,
             )
             return (extra_info, chat_coroutine)
 
