@@ -98,9 +98,6 @@ def check_args(function, args):
 
 class ChatReadRetrieveReadApproach(Approach):
 
-    SPECIAL_TERMS = ['Invest money', 'maximise return', 'minimise risk', 'create portfolio',
-                     'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
-                     'investment advice', 'investment advise']
     # Chat roles
     SYSTEM = "system"
     USER = "user"
@@ -572,7 +569,7 @@ If you cannot generate a search query, return just the number 0.
                         "name": response_message["function_call"]["name"],
                         "arguments": response_message["function_call"]["arguments"],
                     },
-                    "content": None
+                    "content": function_response
                 }
             )
 
