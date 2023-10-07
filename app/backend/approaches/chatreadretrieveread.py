@@ -89,7 +89,7 @@ def check_args(function, args):
     for name in args:
         if name not in params:
             return False
-    # Check if the required arguments are provided 
+    # Check if the required arguments are provided
     for name, param in params.items():
         if param.default is param.empty and name not in args:
             return False
@@ -216,7 +216,7 @@ If you cannot generate a search query, return just the number 0.
                             "enum": ["S&P 500", "NASDAQ Composite", "Dow Jones Industrial Average", "Financial Times Stock Exchange 100 Index"]},
                     },
                     "required": ["index"],
-                },    
+                },
             },
             {
                 "name": "calculator",
@@ -237,7 +237,7 @@ If you cannot generate a search query, return just the number 0.
             "get_current_time": get_current_time,
             "get_stock_market_data": get_stock_market_data,
             "calculator": calculator,
-        } 
+        }
 
         #investment_keywords = [
         #'Invest money', 'maximise return', 'minimise risk', 'create portfolio',
@@ -270,7 +270,7 @@ If you cannot generate a search query, return just the number 0.
         #assistant_response = run_conversation(messages, functions, available_functions, deployment_name)
 
         #chat_completion = self.run_conversation(messages, functions, available_functions, self.chatgpt_deployment)
-        
+
         #return chat_completion
         chat_completion = await openai.ChatCompletion.acreate(
             **chatgpt_args,
@@ -283,7 +283,7 @@ If you cannot generate a search query, return just the number 0.
             function_call="auto",
         )
 
-        
+
         response_message = chat_completion["choices"][0]["message"]
         print (chat_completion)
 
@@ -291,27 +291,27 @@ If you cannot generate a search query, return just the number 0.
         if response_message.get("function_call"):
             print("Recommended Function call:")
             print(response_message.get("function_call"))
-            
+
             # Step 3: call the function
             # Note: the JSON response may not always be valid; be sure to handle errors
-            
+
             function_name = response_message["function_call"]["name"]
-            
+
             # verify function exists
             if function_name not in available_functions:
                 query_text = "Function " + function_name + " does not exist"
-            function_to_call = available_functions[function_name]  
-            
+            function_to_call = available_functions[function_name]
+
             # verify function has correct number of arguments
             function_args = json.loads(response_message["function_call"]["arguments"])
             if check_args(function_to_call, function_args) is False:
                 query_text = "Invalid number of arguments for function: " + function_name
             function_response = function_to_call(**function_args)
-            
+
             print("Output of function call:")
             print(function_response)
             query_text = function_response
-          
+
             messages.append(
                 {
                     "role": response_message["role"],
@@ -331,11 +331,11 @@ If you cannot generate a search query, return just the number 0.
                     "content": function_response,
                 }
             )  # extend conversation with function response
-            
+
             print("Messages in second request:")
             for message in messages:
                 print(message)
-            
+
 
             msg_to_display = "\n\n".join([str(message) for message in messages])
             #print(msg_to_display)
@@ -351,7 +351,7 @@ If you cannot generate a search query, return just the number 0.
             )  # get a new response from GPT where it can see the function response
 
             #return second_response
-            
+
             print ("second_response : ")
             print (second_response["choices"][0]["message"])
 
@@ -368,7 +368,7 @@ If you cannot generate a search query, return just the number 0.
             return (extra_info, chat_coroutine)
 
         else:
-            query_text = self.get_search_query(chat_completion, history[-1]["user"])    
+            query_text = self.get_search_query(chat_completion, history[-1]["user"])
             print ("this is chat completion")
             print (chat_completion)
             print ("the is after printing completion")
@@ -473,9 +473,8 @@ If you cannot generate a search query, return just the number 0.
             history, overrides, auth_claims, should_stream=False
         )
         chat_resp = await chat_coroutine
-        chat_content = chat_resp.choices[0].message.content
-        extra_info["answer"] = chat_content
-        return extra_info
+        chat_resp.choices[0]["extra_args"] = extra_info
+        return chat_resp
 
     async def run_with_streaming(
         self, history: list[dict[str, str]], overrides: dict[str, Any], auth_claims: dict[str, Any]
@@ -483,20 +482,26 @@ If you cannot generate a search query, return just the number 0.
         extra_info, chat_coroutine = await self.run_until_final_call(
             history, overrides, auth_claims, should_stream=True
         )
-        yield extra_info
+        yield {
+            "choices": [
+                {"delta": {"role": self.ASSISTANT}, "extra_args": extra_info, "finish_reason": None, "index": 0}
+            ],
+            "object": "chat.completion.chunk",
+        }
+
         async for event in await chat_coroutine:
             # "2023-07-01-preview" API version has a bug where first response has empty choices
             if event["choices"]:
                 yield event
 
     def get_messages_from_history(
-            self,
-            system_prompt: str,
-            model_id: str,
-            history: list[dict[str, str]],
-            user_conv: str,
-            few_shots=[],
-            max_tokens: int = 4096,
+        self,
+        system_prompt: str,
+        model_id: str,
+        history: list[dict[str, str]],
+        user_content: str,
+        few_shots=[],
+        max_tokens: int = 4096,
     ) -> list:
         message_builder = MessageBuilder(system_prompt, model_id)
 
@@ -504,23 +509,20 @@ If you cannot generate a search query, return just the number 0.
         for shot in few_shots:
             message_builder.append_message(shot.get("role"), shot.get("content"))
 
-        user_content = user_conv
         append_index = len(few_shots) + 1
 
         message_builder.append_message(self.USER, user_content, index=append_index)
 
         for h in reversed(history[:-1]):
+            if message_builder.token_length > max_tokens:
+                break
             if bot_msg := h.get("bot"):
                 message_builder.append_message(self.ASSISTANT, bot_msg, index=append_index)
                 message_builder.append_message(self.ASSISTANT, "Perform Function requests for the user", index=append_index)
             if user_msg := h.get("user"):
                 message_builder.append_message(self.USER, user_msg, index=append_index)
-            if message_builder.token_length > max_tokens:
-                break
-        
-        print ("I am just outside the for loop")
-        messages = message_builder.messages
-        return messages
+
+        return message_builder.messages
 
     def run_conversation(messages, functions, available_functions, deployment_id):
     # Step 1: send the conversation and available functions to GPT
@@ -528,7 +530,7 @@ If you cannot generate a search query, return just the number 0.
             deployment_id=deployment_id,
             messages=messages,
             functions=functions,
-            function_call="auto", 
+            function_call="auto",
         )
         response_message = response["choices"][0]["message"]
 
@@ -538,29 +540,29 @@ If you cannot generate a search query, return just the number 0.
             print("Recommended Function call:")
             print(response_message.get("function_call"))
             print()
-            
+
             # Step 3: call the function
             # Note: the JSON response may not always be valid; be sure to handle errors
-            
+
             function_name = response_message["function_call"]["name"]
-            
+
             # verify function exists
             if function_name not in available_functions:
                 return "Function " + function_name + " does not exist"
-            function_to_call = available_functions[function_name]  
-            
+            function_to_call = available_functions[function_name]
+
             # verify function has correct number of arguments
             function_args = json.loads(response_message["function_call"]["arguments"])
             if check_args(function_to_call, function_args) is False:
                 return "Invalid number of arguments for function: " + function_name
             function_response = function_to_call(**function_args)
-            
+
             print("Output of function call:")
             print(function_response)
             print()
-            
+
             # Step 4: send the info on the function call and function response to GPT
-            
+
             # adding assistant response to messages
             messages.append(
                 {
