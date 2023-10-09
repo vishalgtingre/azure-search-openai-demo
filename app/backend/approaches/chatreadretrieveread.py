@@ -133,9 +133,9 @@ If you cannot generate a search query, return just the number 0.
 """
     query_prompt_few_shots = [
         {'role' : USER, 'content' : 'What is a MIS problem ?' },
-        {'role' : ASSISTANT, 'content' : 'Explain MIS problem' },
+        {'role' : ASSISTANT, 'content' : 'Show details of MIS Problem' },
         {'role' : USER, 'content' : 'What is QUBO Formulation?' },
-        {'role' : ASSISTANT, 'content' : 'Explain QUBO and its formulation' }
+        {'role' : ASSISTANT, 'content' : 'Explain what is a QUBO and its formulation methods' }
     ]
 
     def __init__(
@@ -183,14 +183,25 @@ If you cannot generate a search query, return just the number 0.
         has_vector = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
         use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
         top = overrides.get("top", 3)
-        #exclude_category = overrides.get("exclude_category") or None
-        #expect_code_output = overrides.get("expect_code_output") or False
-        #filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
         filter = self.build_filter(overrides, auth_claims)
 
         user_query_request = "Generate search query for: " + history[-1]["user"]
 
         functions = [
+            {
+                "name": "search_sources",
+                "description": "Retrieve sources from the Azure Cognitive Search index",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search_query": {
+                            "type": "string",
+                            "description": "Query string to retrieve documents from azure search eg: 'Qatalive Book'",
+                        }
+                    },
+                    "required": ["search_query"],
+                },
+            },
             {
                 "name": "get_current_time",
                 "description": "Get the current time in a given location",
@@ -239,23 +250,7 @@ If you cannot generate a search query, return just the number 0.
             "calculator": calculator,
         }
 
-        #investment_keywords = [
-        #'Invest money', 'maximise return', 'minimise risk', 'create portfolio',
-        #'make me richer', 'Portfolio optimization', 'Portfolio optimisation',
-        #'investment advice', 'investment advise']
 
-        # Extract the latest user message
-
-
-        last_user_message = history[-1]["user"].lower()
-
-        '''if any(keyword.lower() in last_user_message for keyword in investment_keywords):
-            ##return {"answer": "Sure I can help, please specify your budget and list of assets you want to invest in."}
-            results = ["Source: This is a guided approach","Approach: Powered by Qatalive"]
-            query_text = ["First Question"]
-            msg_to_display = "The Message is for our guided approach"
-            return {"data_points": results, "answer": "Sure I can help, please specify your budget and list of assets you want to invest in the following Investment form", "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}
-        '''
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
         messages = self.get_messages_from_history(
             self.query_prompt_template,
