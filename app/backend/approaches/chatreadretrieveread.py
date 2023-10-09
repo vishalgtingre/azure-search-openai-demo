@@ -306,7 +306,7 @@ If you cannot generate a search query, return just the number 0.
             print("Output of function call:")
             print(function_response)
             query_text = function_response
-
+            
             messages.append(
                 {
                     "role": response_message["role"],
@@ -314,7 +314,7 @@ If you cannot generate a search query, return just the number 0.
                         "name": response_message["function_call"]["name"],
                         "arguments": response_message["function_call"]["arguments"],
                     },
-                    "content": None
+                    "content": function_response
                 }
             )
 
@@ -340,15 +340,15 @@ If you cannot generate a search query, return just the number 0.
             + msg_to_display.replace("\n", "<br>"),
             }
 
-            second_response = openai.ChatCompletion.create(
+            '''second_response = openai.ChatCompletion.create(
                messages=messages,
                 deployment_id=self.chatgpt_deployment
-            )  # get a new response from GPT where it can see the function response
+            )  # get a new response from GPT where it can see the function response'''
 
             #return second_response
 
-            print ("second_response : ")
-            print (second_response["choices"][0]["message"])
+          
+            #print (second_response["choices"][0]["message"])
 
             chat_coroutine = openai.ChatCompletion.acreate(
             **chatgpt_args,
@@ -359,12 +359,14 @@ If you cannot generate a search query, return just the number 0.
             n=1,
             stream=should_stream,
             )
+            print ("final  chat_completion : ") 
             print (chat_completion)
+            #print (second_response )
             return (extra_info, chat_coroutine)
 
         else:
             query_text = self.get_search_query(chat_completion, history[-1]["user"])
-            print ("this is chat completion")
+            print ("Inside the Else this is chat completion")
             print (chat_completion)
             print ("the is after printing completion")
             # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
