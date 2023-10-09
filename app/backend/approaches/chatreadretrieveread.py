@@ -159,35 +159,7 @@ If you cannot generate a search query, return just the number 0.
         self.content_field = content_field
         self.chatgpt_token_limit = get_token_limit(chatgpt_model)
 
-    def get_search_query(self, chat_completion: dict[str, any], user_query: str):
-        response_message = chat_completion["choices"][0]["message"]
-        if function_call := response_message.get("function_call"):
-            if function_call["name"] == "search_sources":
-                arg = json.loads(function_call["arguments"])
-                search_query = arg.get("search_query", self.NO_RESPONSE)
-                if search_query != self.NO_RESPONSE:
-                    return search_query
-        elif query_text := response_message.get("content"):
-            if query_text.strip() != self.NO_RESPONSE:
-                return query_text
-        return user_query
-
-    async def run_until_final_call(
-        self,
-        history: list[dict[str, str]],
-        overrides: dict[str, Any],
-        auth_claims: dict[str, Any],
-        should_stream: bool = False,
-    ) -> tuple:
-        has_text = overrides.get("retrieval_mode") in ["text", "hybrid", None]
-        has_vector = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
-        use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
-        top = overrides.get("top", 3)
-        filter = self.build_filter(overrides, auth_claims)
-
-        user_query_request = history[-1]["user"]
-        print(user_query_request)
-        functions = [
+        self.functions = [
             {
                 "name": "search_sources",
                 "description": "Retrieve sources from the Azure Cognitive Search index",
@@ -244,12 +216,42 @@ If you cannot generate a search query, return just the number 0.
             }
         ]
 
-        available_functions = {
+        self.available_functions = {
             "get_current_time": get_current_time,
             "get_stock_market_data": get_stock_market_data,
             "calculator": calculator,
         }
 
+
+
+    def get_search_query(self, chat_completion: dict[str, any], user_query: str):
+        response_message = chat_completion["choices"][0]["message"]
+        if function_call := response_message.get("function_call"):
+            if function_call["name"] == "search_sources":
+                arg = json.loads(function_call["arguments"])
+                search_query = arg.get("search_query", self.NO_RESPONSE)
+                if search_query != self.NO_RESPONSE:
+                    return search_query
+        elif query_text := response_message.get("content"):
+            if query_text.strip() != self.NO_RESPONSE:
+                return query_text
+        return user_query
+
+    async def run_until_final_call(
+        self,
+        history: list[dict[str, str]],
+        overrides: dict[str, Any],
+        auth_claims: dict[str, Any],
+        should_stream: bool = False,
+    ) -> tuple:
+        has_text = overrides.get("retrieval_mode") in ["text", "hybrid", None]
+        has_vector = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
+        use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
+        top = overrides.get("top", 3)
+        filter = self.build_filter(overrides, auth_claims)
+
+        user_query_request = history[-1]["user"]
+        print(user_query_request)
 
         # STEP 1: Generate an optimized keyword search query based on the chat history and the last question
         messages = self.get_messages_from_history(
@@ -262,11 +264,7 @@ If you cannot generate a search query, return just the number 0.
         )
 
         chatgpt_args = {"deployment_id": self.chatgpt_deployment} if self.openai_host == "azure" else {}
-        #assistant_response = run_conversation(messages, functions, available_functions, deployment_name)
 
-        #chat_completion = self.run_conversation(messages, functions, available_functions, self.chatgpt_deployment)
-
-        #return chat_completion
         chat_completion = await openai.ChatCompletion.acreate(
             **chatgpt_args,
             model=self.chatgpt_model,
@@ -274,7 +272,7 @@ If you cannot generate a search query, return just the number 0.
             temperature=0.0,
             max_tokens=32,
             n=1,
-            functions=functions,
+            functions=self.functions,
             function_call="auto",
         )
 
@@ -291,7 +289,7 @@ If you cannot generate a search query, return just the number 0.
             # Note: the JSON response may not always be valid; be sure to handle errors
 
             function_name = response_message["function_call"]["name"]
-
+            available_functions = self.available_functions
             # verify function exists
             if function_name not in available_functions:
                 query_text = "Function " + function_name + " does not exist"
@@ -340,34 +338,9 @@ If you cannot generate a search query, return just the number 0.
             + msg_to_display.replace("\n", "<br>"),
             }
 
-            '''second_response = openai.ChatCompletion.create(
-               messages=messages,
-                deployment_id=self.chatgpt_deployment
-            )  # get a new response from GPT where it can see the function response'''
-
-            #return second_response
-
-          
-            #print (second_response["choices"][0]["message"])
-
-            chat_coroutine = openai.ChatCompletion.acreate(
-            **chatgpt_args,
-            model=self.chatgpt_model,
-            messages=messages,
-            temperature=overrides.get("temperature") or 0.7,
-            max_tokens=1024,
-            n=1,
-            stream=should_stream,
-            )
-            print ("final  chat_completion : ") 
-            print (chat_completion)
-            #print (second_response )
-            return (extra_info, chat_coroutine)
-
         else:
-            query_text = self.get_search_query(chat_completion, history[-1]["user"])
+            query_text = response_message.get("content")
             print ("Inside the Else this is chat completion")
-            print (chat_completion)
             print ("the is after printing completion")
             # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
 
@@ -451,17 +424,19 @@ If you cannot generate a search query, return just the number 0.
                 + msg_to_display.replace("\n", "<br>"),
             }
 
-            print (messages)
-            chat_coroutine = openai.ChatCompletion.acreate(
-                **chatgpt_args,
-                model=self.chatgpt_model,
-                messages=messages,
-                temperature=overrides.get("temperature") or 0.7,
-                max_tokens=1024,
-                n=1,
-                stream=should_stream,
+        chat_coroutine = openai.ChatCompletion.acreate(
+            **chatgpt_args,
+            model=self.chatgpt_model,
+            messages=messages,
+            temperature=overrides.get("temperature") or 0.7,
+            max_tokens=1024,
+            n=1,
+            stream=should_stream,
             )
-            return (extra_info, chat_coroutine)
+        print ("final  chat_completion : ") 
+        print (chat_completion)
+            #print (second_response )
+        return (extra_info, chat_coroutine)
 
     async def run_without_streaming(
         self, history: list[dict[str, str]], overrides: dict[str, Any], auth_claims: dict[str, Any]
