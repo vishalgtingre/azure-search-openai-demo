@@ -185,8 +185,8 @@ If you cannot generate a search query, return just the number 0.
         top = overrides.get("top", 3)
         filter = self.build_filter(overrides, auth_claims)
 
-        user_query_request = "Generate search query for: " + history[-1]["user"]
-
+        user_query_request = history[-1]["user"]
+        print(user_query_request)
         functions = [
             {
                 "name": "search_sources",
