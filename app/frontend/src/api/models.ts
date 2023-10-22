@@ -4,43 +4,36 @@ export const enum RetrievalMode {
     Text = "text"
 }
 
-export type AskRequestOverrides = {
-    retrievalMode?: RetrievalMode;
-    semanticRanker?: boolean;
-    semanticCaptions?: boolean;
-    excludeCategory?: string;
+export type ChatAppRequestOverrides = {
+    retrieval_mode?: RetrievalMode;
+    semantic_ranker?: boolean;
+    semantic_captions?: boolean;
+    exclude_category?: string;
     top?: number;
     temperature?: number;
-    promptTemplate?: string;
-    promptTemplatePrefix?: string;
-    promptTemplateSuffix?: string;
-    suggestFollowupQuestions?: boolean;
-//=======
-    expectcodeoutput?: boolean;
-    useOidSecurityFilter?: boolean;
-    useGroupsSecurityFilter?: boolean;
-};
-
-export type AskRequest = {
-    question: string;
-    overrides?: AskRequestOverrides;
-    idToken?: string;
+    prompt_template?: string;
+    prompt_template_prefix?: string;
+    prompt_template_suffix?: string;
+    suggest_followup_questions?: boolean;
+    use_oid_security_filter?: boolean;
+    use_groups_security_filter?: boolean;
 };
 
 export type ResponseMessage = {
     content: string;
     role: string;
-}
+};
 
-export type ResponseExtraArgs = {
+export type ResponseContext = {
     thoughts: string | null;
     data_points: string[];
-}
+};
 
 export type ResponseChoice = {
     index: number;
     message: ResponseMessage;
-    extra_args: ResponseExtraArgs;
+    context: ResponseContext;
+    session_state: any;
 };
 
 export type ChatAppResponseOrError = {
@@ -52,14 +45,13 @@ export type ChatAppResponse = {
     choices: ResponseChoice[];
 };
 
-export type ChatTurn = {
-    user: string;
-    bot?: string;
+export type ChatAppRequestContext = {
+    overrides?: ChatAppRequestOverrides;
 };
 
-export type ChatRequest = {
-    history: ChatTurn[];
-    overrides?: AskRequestOverrides;
-    idToken?: string;
-    shouldStream?: boolean;
+export type ChatAppRequest = {
+    messages: ResponseMessage[];
+    context?: ChatAppRequestContext;
+    stream?: boolean;
+    session_state: any;
 };

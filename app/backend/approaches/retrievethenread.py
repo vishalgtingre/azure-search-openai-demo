@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, AsyncGenerator, Optional, Union
 
 import openai
 from azure.search.documents.aio import SearchClient
@@ -40,12 +40,14 @@ info4.pdf: In-network institutions include Overlake, Swedish and others in the r
         self,
         search_client: SearchClient,
         openai_host: str,
-        chatgpt_deployment: str,
+        chatgpt_deployment: Optional[str],  # Not needed for non-Azure OpenAI
         chatgpt_model: str,
-        embedding_deployment: str,
+        embedding_deployment: Optional[str],  # Not needed for non-Azure OpenAI or for retrieval_mode="text"
         embedding_model: str,
         sourcepage_field: str,
         content_field: str,
+        query_language: str,
+        query_speller: str,
     ):
         self.search_client = search_client
         self.openai_host = openai_host
@@ -55,8 +57,19 @@ info4.pdf: In-network institutions include Overlake, Swedish and others in the r
         self.embedding_deployment = embedding_deployment
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
+        self.query_language = query_language
+        self.query_speller = query_speller
 
-    async def run(self, q: str, overrides: dict[str, Any], auth_claims: dict[str, Any]) -> dict[str, Any]:
+    async def run(
+        self,
+        messages: list[dict],
+        stream: bool = False,  # Stream is not used in this approach
+        session_state: Any = None,
+        context: dict[str, Any] = {},
+    ) -> Union[dict[str, Any], AsyncGenerator[dict[str, Any], None]]:
+        q = messages[-1]["content"]
+        overrides = context.get("overrides", {})
+        auth_claims = context.get("auth_claims", {})
         has_text = overrides.get("retrieval_mode") in ["text", "hybrid", None]
         has_vector = overrides.get("retrieval_mode") in ["vectors", "hybrid", None]
         use_semantic_captions = True if overrides.get("semantic_captions") and has_text else False
@@ -80,8 +93,8 @@ info4.pdf: In-network institutions include Overlake, Swedish and others in the r
                 query_text,
                 filter=filter,
                 query_type=QueryType.SEMANTIC,
-                query_language="en-us",
-                query_speller="lexicon",
+                query_language=self.query_language,
+                query_speller=self.query_speller,
                 semantic_configuration_name="default",
                 top=top,
                 query_caption="extractive|highlight-false" if use_semantic_captions else None,
@@ -135,5 +148,6 @@ info4.pdf: In-network institutions include Overlake, Swedish and others in the r
             "thoughts": f"Question:<br>{query_text}<br><br>Prompt:<br>"
             + "\n\n".join([str(message) for message in messages]),
         }
-        chat_completion.choices[0]["extra_args"] = extra_info
+        chat_completion.choices[0]["context"] = extra_info
+        chat_completion.choices[0]["session_state"] = session_state
         return chat_completion
