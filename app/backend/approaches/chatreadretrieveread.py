@@ -298,11 +298,13 @@ If you cannot generate a search query, return just the number 0.
             functions=self.functions,
             function_call="auto",
         )
-
-        query_text = self.get_search_query(chat_completion, original_user_query)
-
         response_message = chat_completion["choices"][0]["message"]
-        print (chat_completion)
+        print ("response_message")
+        print (response_message)
+        query_text = self.get_search_query(chat_completion, original_user_query)
+        print ("chat_completion")
+        print(chat_completion)
+        # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
 
         query_text = None
         if response_message.get("function_call"):
@@ -554,6 +556,8 @@ If you cannot generate a search query, return just the number 0.
                 arg = json.loads(function_call["arguments"])
                 search_query = arg.get("search_query", self.NO_RESPONSE)
                 if search_query != self.NO_RESPONSE:
+                    print("the search_query")
+                    print(search_query)
                     return search_query
         elif query_text := response_message.get("content"):
             if query_text.strip() != self.NO_RESPONSE:
