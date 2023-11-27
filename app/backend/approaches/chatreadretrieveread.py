@@ -137,7 +137,7 @@ If you cannot generate a search query, return just the number 0.
             tools=FunctionCallModule.TOOLS,
             tool_choice="auto",
         )
-        print("in execute_tool",chat_completion)
+
         query_text, query_text_messages = self.get_search_query(chat_completion, original_user_query)
         messages = messages + query_text_messages
         # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
@@ -225,7 +225,6 @@ If you cannot generate a search query, return just the number 0.
         }
 
         #append query_text_messages to finals messages
-        print("query_text_messages", query_text_messages)
         messages = messages + query_text_messages
 
         chat_coroutine = openai.ChatCompletion.acreate(
@@ -378,7 +377,7 @@ If you cannot generate a search query, return just the number 0.
             try:
                 function_response, messages = self.execute_tool(chat_completion)
                 return function_response, messages
-            except:
+            except Exception as e:
                 pass
         elif query_text := response_message.get("content"):
             if query_text.strip() != self.NO_RESPONSE:

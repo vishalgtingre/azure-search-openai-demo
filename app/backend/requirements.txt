@@ -304,6 +304,9 @@ yarl==1.9.2
     # via aiohttp
 zipp==3.17.0
     # via importlib-metadata
-
+yfinance==0.2.32
+pandas_datareader==0.10.0
+dimod==0.12.13
+dwave.system==1.21.0
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
