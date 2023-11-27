@@ -12,7 +12,7 @@ from approaches.approach import Approach
 from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_token_limit
 from text import nonewlines
-
+import approaches.function_call as FunctionCallModule
 
 class ChatReadRetrieveReadApproach(Approach):
     # Chat roles
@@ -125,7 +125,7 @@ If you cannot generate a search query, return just the number 0.
             max_tokens=self.chatgpt_token_limit - len(user_query_request),
             few_shots=self.query_prompt_few_shots,
         )
-
+        messages.append({"role":"system", "content": "Please refer to tools before going to prepdocs"})
         chatgpt_args = {"deployment_id": self.chatgpt_deployment} if self.openai_host == "azure" else {}
         chat_completion = await openai.ChatCompletion.acreate(
             **chatgpt_args,
@@ -134,12 +134,12 @@ If you cannot generate a search query, return just the number 0.
             temperature=0.0,
             max_tokens=100,  # Setting too low risks malformed JSON, setting too high may affect performance
             n=1,
-            functions=functions,
-            function_call="auto",
+            tools=FunctionCallModule.TOOLS,
+            tool_choice="auto",
         )
-
-        query_text = self.get_search_query(chat_completion, original_user_query)
-
+        print("in execute_tool",chat_completion)
+        query_text, query_text_messages = self.get_search_query(chat_completion, original_user_query)
+        messages = messages + query_text_messages
         # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
 
         # If retrieval mode includes vectors, compute an embedding for the query
@@ -223,6 +223,10 @@ If you cannot generate a search query, return just the number 0.
             "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>"
             + msg_to_display.replace("\n", "<br>"),
         }
+
+        #append query_text_messages to finals messages
+        print("query_text_messages", query_text_messages)
+        messages = messages + query_text_messages
 
         chat_coroutine = openai.ChatCompletion.acreate(
             **chatgpt_args,
@@ -354,17 +358,56 @@ If you cannot generate a search query, return just the number 0.
         return message_builder.messages
 
     def get_search_query(self, chat_completion: dict[str, Any], user_query: str):
+        messages = []
         response_message = chat_completion["choices"][0]["message"]
         if function_call := response_message.get("function_call"):
             if function_call["name"] == "search_sources":
                 arg = json.loads(function_call["arguments"])
                 search_query = arg.get("search_query", self.NO_RESPONSE)
                 if search_query != self.NO_RESPONSE:
-                    return search_query
+                    return search_query, messages
+            fn = getattr(FunctionCallModule,function_call["name"])
+            function_args = json.loads(function_call["arguments"])
+            function_response = fn(function_args)
+            messages.append({"role": "function",
+                "name": function_call["name"],
+                "content": function_response,
+            })
+            return user_query, messages
+        elif response_message.get("tool_calls"):
+            try:
+                function_response, messages = self.execute_tool(chat_completion)
+                return function_response, messages
+            except:
+                pass
         elif query_text := response_message.get("content"):
             if query_text.strip() != self.NO_RESPONSE:
-                return query_text
-        return user_query
+                return query_text, messages
+        return user_query, messages
+    
+    def execute_tool(self, chat_completion):
+        messages = []
+        response_message = chat_completion["choices"][0]["message"]
+        if not response_message.get("content"):
+            response_message["content"] = "function call"
+        # Step 1: check if the model wanted to call a function
+        if response_message and response_message.get("tool_calls"):
+            tool_calls = response_message.tool_calls
+            # Step 2: call the function
+            # Note: the JSON response may not always be valid; be sure to handle errors
+            messages.append(response_message)  # extend conversation with assistant's reply
+            
+            # Step 4: send the info for each function call and function response to the model
+            for tool_call in tool_calls:
+                fn = getattr(FunctionCallModule,tool_call.function.name)
+                function_args = json.loads(tool_call.function.arguments)
+                function_response = fn(function_args)
+                messages.append({"tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": tool_call.function.name,
+                    "content": function_response,
+                }) 
+        return function_response, messages
 
     def extract_followup_questions(self, content: str):
         return content.split("<<")[0], re.findall(r"<<([^>>]+)>>", content)
