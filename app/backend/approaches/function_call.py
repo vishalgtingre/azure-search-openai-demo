@@ -55,20 +55,21 @@ def get_stock_data(*args, **kwargs):
     '''Ask basic user investment appetite related questions'''
     print("--------get_stock_distribution--", args, kwargs)
     # return json.dumps({"apple": 50, "tesla": 30, "google": 20})
-    Data = yf.download(['MSFT','TSLA','AAPL'], start ='2022-01-01')['Adj Close']
+    Data = yf.download(['MSFT','AMZN','TSLA','AAPL'], start ='2022-01-01')['Adj Close']
+    print(Data)
     assets = Data.columns.tolist()
     returns = Data.pct_change(1).dropna()
     cov = np.array(returns.cov())
     mean = returns.mean()
     prices = Data.iloc[-1]
-    iv = [Integer(f'x_{i}', upper_bound=10) for i in range(3)]
+    iv = [Integer(f'x_{i}', upper_bound=10) for i in range(4)]
     cqm = ConstrainedQuadraticModel()
-    cqm.set_objective(quicksum(quicksum(iv[i]*iv[j]*prices[i]*prices[j]*cov[i,j] for j in range(3)) for i in range(3)))
+    cqm.set_objective(quicksum(quicksum(iv[i]*iv[j]*prices[i]*prices[j]*cov[i,j] for j in range(4)) for i in range(4)))
     budget = 10000
-    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(3)) <=budget)
-    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(3))  >= 0.98 * budget)
+    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(4)) <=budget)
+    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(4))  >= 0.98 * budget)
     cqm_sampler = LeapHybridCQMSampler(token='DEV-c398268cb2d92fe3038d906bd2bfb8b4dba9d923')
-    sample_set = cqm_sampler.sample_cqm(cqm,label='investment optimization')
+    sample_set = cqm_sampler.sample_cqm(cqm,label='investment_with_4 optimization new')
 
     a = sample_set.aggregate().record
     cols  = list(a.dtype.names)

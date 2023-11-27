@@ -5,13 +5,6 @@ from typing import Any, AsyncGenerator, Optional, Union
 
 import aiohttp
 import openai
-import pandas as pd
-import json
-import math
-
-import pytz
-from datetime import datetime
-
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import QueryType
 
@@ -21,86 +14,7 @@ from core.modelhelper import get_token_limit
 from text import nonewlines
 import approaches.function_call as FunctionCallModule
 
-from externaldata.chat_code_utils import extract_code_from_message , appendimportsandprints, execute_extracted_code
-
-
-import pytz
-from datetime import datetime
-def get_current_time(location):
-    try:
-        # Get the timezone for the city
-        timezone = pytz.timezone(location)
-
-        # Get the current time in the timezone
-        now = datetime.now(timezone)
-        current_time = now.strftime("%I:%M:%S %p")
-
-        return current_time
-    except:
-        return "Sorry, I couldn't find the timezone for that location."
-
-import pandas as pd
-import json
-def get_stock_market_data(index):
-    available_indices = ["S&P 500", "NASDAQ Composite", "Dow Jones Industrial Average", "Financial Times Stock Exchange 100 Index"]
-
-    if index not in available_indices:
-        return "Invalid index. Please choose from 'S&P 500', 'NASDAQ Composite', 'Dow Jones Industrial Average', 'Financial Times Stock Exchange 100 Index'."
-
-    # Read the CSV file
-    data = pd.read_csv('stock_data.csv')
-
-    # Filter data for the given index
-    data_filtered = data[data['Index'] == index]
-
-    # Remove 'Index' column
-    data_filtered = data_filtered.drop(columns=['Index'])
-
-    # Convert the DataFrame into a dictionary
-    hist_dict = data_filtered.to_dict()
-
-    for key, value_dict in hist_dict.items():
-        hist_dict[key] = {k: v for k, v in value_dict.items()}
-
-    return json.dumps(hist_dict)
-
-import math
-def calculator(num1, num2, operator):
-    if operator == '+':
-        return str(num1 + num2)
-    elif operator == '-':
-        return str(num1 - num2)
-    elif operator == '*':
-        return str(num1 * num2)
-    elif operator == '/':
-        return str(num1 / num2)
-    elif operator == '**':
-        return str(num1 ** num2)
-    elif operator == 'sqrt':
-        return str(math.sqrt(num1))
-    else:
-        return "Invalid operator"
-
-import inspect
-
-# helper method used to check if the correct arguments are provided to a function
-def check_args(function, args):
-    sig = inspect.signature(function)
-    params = sig.parameters
-
-    # Check if there are extra arguments
-    for name in args:
-        if name not in params:
-            return False
-    # Check if the required arguments are provided
-    for name, param in params.items():
-        if param.default is param.empty and name not in args:
-            return False
-
-    return True
-
 class ChatReadRetrieveReadApproach(Approach):
-
     # Chat roles
     SYSTEM = "system"
     USER = "user"
@@ -113,7 +27,7 @@ class ChatReadRetrieveReadApproach(Approach):
     then uses Azure AI Search to retrieve relevant documents, and then sends the conversation history,
     original user question, and search results to OpenAI to generate a response.
     """
-    system_message_chat_conversation = """Assistant helps the users with their business problem related questions, and questions about using the quantum computing for different Business problems. Be brief in your answers.
+    system_message_chat_conversation = """Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
 Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
 For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.
 Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, for example [info1.txt]. Don't combine sources, list each source separately, for example [info1.txt][info2.pdf].
@@ -138,10 +52,10 @@ If the question is not in English, translate the question to English before gene
 If you cannot generate a search query, return just the number 0.
 """
     query_prompt_few_shots = [
-        {'role' : USER, 'content' : 'What is a MIS problem ?' },
-        {'role' : ASSISTANT, 'content' : 'Show details of MIS Problem' },
-        {'role' : USER, 'content' : 'What is QUBO Formulation?' },
-        {'role' : ASSISTANT, 'content' : 'Explain what is a QUBO and its formulation methods' }
+        {"role": USER, "content": "What are my health plans?"},
+        {"role": ASSISTANT, "content": "Show available health plans"},
+        {"role": USER, "content": "does my plan cover cardio?"},
+        {"role": ASSISTANT, "content": "Health plan cardio coverage"},
     ]
 
     def __init__(
@@ -168,84 +82,6 @@ If you cannot generate a search query, return just the number 0.
         self.query_language = query_language
         self.query_speller = query_speller
         self.chatgpt_token_limit = get_token_limit(chatgpt_model)
-
-        self.functions = [
-            {
-                "name": "search_sources",
-                "description": "Retrieve sources from the Azure Cognitive Search index",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "search_query": {
-                            "type": "string",
-                            "description": "Query string to retrieve documents from azure search eg: 'Qatalive Book'",
-                        }
-                    },
-                    "required": ["search_query"],
-                },
-            },
-            {
-                "name": "get_current_time",
-                "description": "Get the current time in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The location name. The pytz is used to get the timezone for that location. Location names should be in a format like America/New_York, Asia/Bangkok, Europe/London",
-                        }
-                    },
-                    "required": ["location"],
-                },
-            },
-            {
-                "name": "get_stock_market_data",
-                "description": "Get the stock market data for a given index",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "index": {
-                            "type": "string",
-                            "enum": ["S&P 500", "NASDAQ Composite", "Dow Jones Industrial Average", "Financial Times Stock Exchange 100 Index"]},
-                    },
-                    "required": ["index"],
-                },
-            },
-            {
-                "name": "calculator",
-                "description": "A simple calculator used to perform basic arithmetic operations",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "num1": {"type": "number"},
-                        "num2": {"type": "number"},
-                        "operator": {"type": "string", "enum": ["+", "-", "*", "/", "**", "sqrt"]},
-                    },
-                    "required": ["num1", "num2", "operator"],
-                },
-            }
-        ]
-
-        self.available_functions = {
-            "get_current_time": get_current_time,
-            "get_stock_market_data": get_stock_market_data,
-            "calculator": calculator,
-        }
-
-
-
-    def get_search_query(self, chat_completion: dict[str, any], user_query: str):
-        response_message = chat_completion["choices"][0]["message"]
-        if function_call := response_message.get("function_call"):
-            if function_call["name"] == "search_sources":
-                arg = json.loads(function_call["arguments"])
-                search_query = arg.get("search_query", self.NO_RESPONSE)
-                if search_query != self.NO_RESPONSE:
-                    return search_query
-        elif query_text := response_message.get("content"):
-            if query_text.strip() != self.NO_RESPONSE:
-                return query_text
-        return user_query
 
     async def run_until_final_call(
         self,
@@ -291,7 +127,6 @@ If you cannot generate a search query, return just the number 0.
         )
         messages.append({"role":"system", "content": "Please refer to tools before going to prepdocs"})
         chatgpt_args = {"deployment_id": self.chatgpt_deployment} if self.openai_host == "azure" else {}
-
         chat_completion = await openai.ChatCompletion.acreate(
             **chatgpt_args,
             model=self.chatgpt_model,
@@ -307,13 +142,17 @@ If you cannot generate a search query, return just the number 0.
         messages = messages + query_text_messages
         # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
 
-        query_text = None
-        if response_message.get("function_call"):
-            print("Recommended Function call:")
-            print(response_message.get("function_call"))
+        # If retrieval mode includes vectors, compute an embedding for the query
+        if has_vector:
+            embedding_args = {"deployment_id": self.embedding_deployment} if self.openai_host == "azure" else {}
+            embedding = await openai.Embedding.acreate(**embedding_args, model=self.embedding_model, input=query_text)
+            query_vector = embedding["data"][0]["embedding"]
+        else:
+            query_vector = None
 
-            # Step 3: call the function
-            # Note: the JSON response may not always be valid; be sure to handle errors
+        # Only keep the text query if the retrieval mode uses text, otherwise drop it
+        if not has_text:
+            query_text = None
 
         # Use semantic L2 reranker if requested and if retrieval mode is text or hybrid (vectors + text)
         if overrides.get("semantic_ranker") and has_text:
@@ -330,20 +169,42 @@ If you cannot generate a search query, return just the number 0.
                 top_k=50 if query_vector else None,
                 vector_fields="embedding" if query_vector else None,
             )
+        else:
+            r = await self.search_client.search(
+                query_text,
+                filter=filter,
+                top=top,
+                vector=query_vector,
+                top_k=50 if query_vector else None,
+                vector_fields="embedding" if query_vector else None,
+            )
+        if use_semantic_captions:
+            results = [
+                doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc["@search.captions"]]))
+                async for doc in r
+            ]
+        else:
+            results = [doc[self.sourcepage_field] + ": " + nonewlines(doc[self.content_field]) async for doc in r]
+        content = "\n".join(results)
 
-            # adding function response to messages
-            messages.append(
-                {
-                    "role": "function",
-                    "name": function_name,
-                    "content": function_response,
-                }
-            )  # extend conversation with function response
+        follow_up_questions_prompt = (
+            self.follow_up_questions_prompt_content if overrides.get("suggest_followup_questions") else ""
+        )
 
-            print("Messages in second request:")
-            for message in messages:
-                print(message)
+        # STEP 3: Generate a contextual and content specific answer using the search results and chat history
 
+        # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
+        prompt_override = overrides.get("prompt_template")
+        if prompt_override is None:
+            system_message = self.system_message_chat_conversation.format(
+                injected_prompt="", follow_up_questions_prompt=follow_up_questions_prompt
+            )
+        elif prompt_override.startswith(">>>"):
+            system_message = self.system_message_chat_conversation.format(
+                injected_prompt=prompt_override[3:] + "\n", follow_up_questions_prompt=follow_up_questions_prompt
+            )
+        else:
+            system_message = prompt_override.format(follow_up_questions_prompt=follow_up_questions_prompt)
 
         response_token_limit = 1024
         messages_token_limit = self.chatgpt_token_limit - response_token_limit
@@ -361,93 +222,7 @@ If you cannot generate a search query, return just the number 0.
             "data_points": results,
             "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>"
             + msg_to_display.replace("\n", "<br>"),
-            }
-
-        else:
-            query_text = response_message.get("content")
-            print ("Inside the Else this is chat completion")
-            print ("the is after printing completion")
-            # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
-
-            # If retrieval mode includes vectors, compute an embedding for the query
-            if has_vector:
-                embedding_args = {"deployment_id": self.embedding_deployment} if self.openai_host == "azure" else {}
-                embedding = await openai.Embedding.acreate(**embedding_args, model=self.embedding_model, input=query_text)
-                query_vector = embedding["data"][0]["embedding"]
-            else:
-                query_vector = None
-
-            # Only keep the text query if the retrieval mode uses text, otherwise drop it
-            print (query_text)
-            if not has_text:
-                query_text = None
-
-            # Use semantic L2 reranker if requested and if retrieval mode is text or hybrid (vectors + text)
-            if overrides.get("semantic_ranker") and has_text:
-                r = await self.search_client.search(
-                    query_text,
-                    filter=filter,
-                    query_type=QueryType.SEMANTIC,
-                    query_language="en-us",
-                    query_speller="lexicon",
-                    semantic_configuration_name="default",
-                    top=top,
-                    query_caption="extractive|highlight-false" if use_semantic_captions else None,
-                    vector=query_vector,
-                    top_k=50 if query_vector else None,
-                    vector_fields="embedding" if query_vector else None,
-                )
-            else:
-                r = await self.search_client.search(
-                    query_text,
-                    filter=filter,
-                    top=top,
-                    vector=query_vector,
-                    top_k=50 if query_vector else None,
-                    vector_fields="embedding" if query_vector else None,
-                )
-            if use_semantic_captions:
-                results = [
-                    doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc["@search.captions"]]))
-                    async for doc in r
-                ]
-            else:
-                results = [doc[self.sourcepage_field] + ": " + nonewlines(doc[self.content_field]) async for doc in r]
-            content = "\n".join(results)
-
-            follow_up_questions_prompt = (
-                self.follow_up_questions_prompt_content if overrides.get("suggest_followup_questions") else ""
-            )
-
-            # STEP 3: Generate a contextual and content specific answer using the search results and chat history
-
-            # Allow client to replace the entire prompt, or to inject into the exiting prompt using >>>
-            prompt_override = overrides.get("prompt_template")
-            if prompt_override is None:
-                system_message = self.system_message_chat_conversation.format(
-                    injected_prompt="", follow_up_questions_prompt=follow_up_questions_prompt
-                )
-            elif prompt_override.startswith(">>>"):
-                system_message = self.system_message_chat_conversation.format(
-                    injected_prompt=prompt_override[3:] + "\n", follow_up_questions_prompt=follow_up_questions_prompt
-                )
-            else:
-                system_message = prompt_override.format(follow_up_questions_prompt=follow_up_questions_prompt)
-
-            messages = self.get_messages_from_history(
-                system_message,
-                self.chatgpt_model,
-                history,
-                history[-1]["user"] + "\n\nSources:\n" + content,
-                max_tokens=self.chatgpt_token_limit,  # Model does not handle lengthy system messages well. Moving sources to latest user conversation to solve follow up questions prompt.
-            )
-            msg_to_display = "\n\n".join([str(message) for message in messages])
-
-            extra_info = {
-                "data_points": results,
-                "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>"
-                + msg_to_display.replace("\n", "<br>"),
-            }
+        }
 
         #append query_text_messages to finals messages
         messages = messages + query_text_messages
@@ -460,10 +235,7 @@ If you cannot generate a search query, return just the number 0.
             max_tokens=response_token_limit,
             n=1,
             stream=should_stream,
-            )
-        print ("final  chat_completion : ")
-        print (chat_completion)
-            #print (second_response )
+        )
         return (extra_info, chat_coroutine)
 
     async def run_without_streaming(
@@ -611,7 +383,7 @@ If you cannot generate a search query, return just the number 0.
             if query_text.strip() != self.NO_RESPONSE:
                 return query_text, messages
         return user_query, messages
-
+    
     def execute_tool(self, chat_completion):
         messages = []
         response_message = chat_completion["choices"][0]["message"]
@@ -623,7 +395,7 @@ If you cannot generate a search query, return just the number 0.
             # Step 2: call the function
             # Note: the JSON response may not always be valid; be sure to handle errors
             messages.append(response_message)  # extend conversation with assistant's reply
-
+            
             # Step 4: send the info for each function call and function response to the model
             for tool_call in tool_calls:
                 fn = getattr(FunctionCallModule,tool_call.function.name)
@@ -633,7 +405,7 @@ If you cannot generate a search query, return just the number 0.
                     "role": "tool",
                     "name": tool_call.function.name,
                     "content": function_response,
-                })
+                }) 
         return function_response, messages
 
     def extract_followup_questions(self, content: str):
