@@ -113,6 +113,20 @@ If you cannot generate a search query, return just the number 0.
                     },
                     "required": ["search_query"],
                 },
+            },
+            {
+                "name": "get_stock_data",
+                "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year)",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "search_list": {
+                            "type": "string",
+                            "description": "Query string that provides list ostocks'",
+                        }
+                    },
+                    "required": ["search_list"],
+                }
             }
         ]
 

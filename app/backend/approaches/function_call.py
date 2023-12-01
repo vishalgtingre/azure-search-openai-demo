@@ -20,7 +20,8 @@ TOOLS = [
                 "description": "Help user for investing money and ask basic details reagrding his investment appetite.Invest money, maximise return, minimise risk, create portfolio, make me richer, Portfolio optimization, Portfolio optimisation, investment advice, investment advise",
                 "parameters": {
                     "type": "object",
-                    "properties": {},
+                    "properties": {
+                        },
                     "required": []
                 }
             },
@@ -32,8 +33,13 @@ TOOLS = [
                 "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year)",
                 "parameters": {
                     "type": "object",
-                    "properties": {},
-                    "required": []
+                    "properties": {
+                        "search_list": {
+                            "type": "string",
+                            "description": "Query string that provides list ostocks'",
+                        }
+                    },
+                    "required": ["search_list"],
                 }
             },
         },
@@ -51,10 +57,12 @@ def get_current_time(location="", *args, **kwargs):
     current_time = now.strftime("%I:%M:%S %p")
     return current_time
 
-def get_stock_data(*args, **kwargs):
-    '''Ask basic user investment appetite related questions'''
+def get_stock_data(search_list="",*args, **kwargs):
+    '''Ask  user to provide stocks and budget for investment '''
     print("--------get_stock_distribution--", args, kwargs)
     # return json.dumps({"apple": 50, "tesla": 30, "google": 20})
+    print(search_list)
+    print(search_list[0])
     Data = yf.download(['MSFT','AMZN','TSLA','AAPL'], start ='2022-01-01')['Adj Close']
     print(Data)
     assets = Data.columns.tolist()
