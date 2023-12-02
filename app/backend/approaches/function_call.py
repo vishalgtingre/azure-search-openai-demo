@@ -65,7 +65,7 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
     
     print(search_list)
-    print("--------get_stock_distribution--", args, kwargs)
+    print("--------get_stock_distribution--")
     # return json.dumps({"apple": 50, "tesla": 30, "google": 20})
     print(budget)
     
