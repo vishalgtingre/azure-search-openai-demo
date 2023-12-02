@@ -42,9 +42,9 @@ TOOLS = [
                             "type": "string",
                             "description": " Budget of the user"
                         }
-                            }
                         },
-                    "required": ["search_list","budget"]
+                    "required": []
+                     }
                 }
         }
 ]
@@ -65,20 +65,10 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
     
     print(search_list)
-    print("--------get_stock_distribution--")
-    # return json.dumps({"apple": 50, "tesla": 30, "google": 20})
+    print("---Iam inside this function-----get_stock_distribution--")
     print(budget)
-    
-    # Convert the string to a dictionary
     input_dict = json.loads(search_list)
-
-    # Extract the budget and convert it to an integer
     budget = int(input_dict["budget"])
-
-    # Extract the search list and convert it to a list of strings
-    
-
-# Example of processing the data
     print("Budget:", budget)
     print("Companies to invest in:")
     for company in search_list:
