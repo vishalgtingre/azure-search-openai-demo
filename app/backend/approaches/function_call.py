@@ -24,7 +24,7 @@ TOOLS = [
                         },
                     "required": []
                 }
-            },
+            }
         },
         {
             "type": "function",
@@ -36,13 +36,17 @@ TOOLS = [
                     "properties": {
                         "search_list": {
                             "type": "string",
-                            "description": "Query string that provides list ostocks'",
+                            "description": " list of the stocks "
+                        },
+                        "budget": {
+                            "type": "string",
+                            "description": " Budget of the user"
                         }
-                    },
-                    "required": ["search_list"],
+                            }
+                        },
+                    "required": ["search_list","budget"]
                 }
-            },
-        },
+        }
 ]
 
 def ask_user_investment_appetite(*args, **kwargs):
@@ -57,13 +61,32 @@ def get_current_time(location="", *args, **kwargs):
     current_time = now.strftime("%I:%M:%S %p")
     return current_time
 
-def get_stock_data(search_list="",*args, **kwargs):
+def get_stock_data(search_list="",budget="",*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
+    
+    print(search_list)
     print("--------get_stock_distribution--", args, kwargs)
     # return json.dumps({"apple": 50, "tesla": 30, "google": 20})
-    print(search_list)
-    print(search_list[0])
-    Data = yf.download(['MSFT','AMZN','TSLA','AAPL'], start ='2022-01-01')['Adj Close']
+    print(budget)
+    
+    # Convert the string to a dictionary
+    input_dict = json.loads(search_list)
+
+    # Extract the budget and convert it to an integer
+    budget = int(input_dict["budget"])
+
+    # Extract the search list and convert it to a list of strings
+    
+
+# Example of processing the data
+    print("Budget:", budget)
+    print("Companies to invest in:")
+    for company in search_list:
+        print(f"- {company}")
+    
+    ticker_symbols = input_dict["search_list"].split(", ")
+    
+    Data = yf.download(ticker_symbols, start ='2022-01-01')['Adj Close']
     print(Data)
     assets = Data.columns.tolist()
     returns = Data.pct_change(1).dropna()
