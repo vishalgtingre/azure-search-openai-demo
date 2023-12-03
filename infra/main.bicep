@@ -39,13 +39,13 @@ param openAiHost string // Set in main.parameters.json
 param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
 @description('Location for the OpenAI resource group')
-@allowed(['canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast', 'swedencentral'])
+@allowed(['southindia','westus','westeurope','canadaeast', 'eastus', 'eastus2', 'francecentral', 'switzerlandnorth', 'uksouth', 'japaneast', 'northcentralus', 'australiaeast', 'swedencentral'])
 @metadata({
   azd: {
     type: 'location'
   }
 })
-param openAiResourceGroupLocation string
+param openAiResourceGroupLocation string = 'canadaeast'
 
 param openAiSkuName string = 'S0'
 
@@ -59,11 +59,11 @@ param formRecognizerResourceGroupLocation string = location
 param formRecognizerSkuName string = 'S0'
 
 param chatGptDeploymentName string // Set in main.parameters.json
-param chatGptDeploymentCapacity int = 30
-param chatGptModelName string = (openAiHost == 'azure') ? 'gpt-35-turbo' : 'gpt-3.5-turbo'
-param chatGptModelVersion string = '0613'
+param chatGptDeploymentCapacity int = 10
+param chatGptModelName string = (openAiHost == 'azure') ? 'gpt-4' : 'gpt-35-turbo'
+param chatGptModelVersion string = '1106-Preview'
 param embeddingDeploymentName string // Set in main.parameters.json
-param embeddingDeploymentCapacity int = 30
+param embeddingDeploymentCapacity int = 10
 param embeddingModelName string = 'text-embedding-ada-002'
 
 // Used for the optional login and document level access control system
