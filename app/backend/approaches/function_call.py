@@ -67,7 +67,7 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     print("---Iam inside this function for search_list-----get_stock_distribution--")
     print(search_list)
     print("---Iam inside this function for Budget-----get_stock_distribution--")
-    print (budget)
+    
     print("---Iam inside this function-----get_stock_distribution--")
     
     input_data = search_list['search_list'].split(',')
@@ -78,6 +78,7 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     print("---Iam inside this function printing input data-----get_stock_distribution--")
     nInpCnt = len(input_data)
     budget = search_list['budget']
+    print (budget)
     print("---Iam inside this function printing input data-----get_stock_distribution--")
     print ("after tickers")
     Data = yf.download(input_data, start ='2022-01-01')['Adj Close']
@@ -90,7 +91,6 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     iv = [Integer(f'x_{i}', upper_bound=10) for i in range(nInpCnt)]
     cqm = ConstrainedQuadraticModel()
     cqm.set_objective(quicksum(quicksum(iv[i]*iv[j]*prices[i]*prices[j]*cov[i,j] for j in range(nInpCnt)) for i in range(nInpCnt)))
-    budget = 10000
     cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt)) <=budget)
     cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt))  >= 0.98 * budget)
     cqm_sampler = LeapHybridCQMSampler(token='DEV-c398268cb2d92fe3038d906bd2bfb8b4dba9d923')
