@@ -51,7 +51,7 @@ TOOLS = [
 
 def ask_user_investment_appetite(*args, **kwargs):
     '''Ask basic user investment appetite related questions'''
-
+    print ("Requesting for inputs from Functions ask_user_investment_appetite")
     return "To help you invest please provide budget, list of stocks and duration"
 
 def get_current_time(location="", *args, **kwargs):
@@ -64,31 +64,33 @@ def get_current_time(location="", *args, **kwargs):
 def get_stock_data(search_list="",budget="",*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
     
+    print("---Iam inside this function for search_list-----get_stock_distribution--")
     print(search_list)
+    print("---Iam inside this function for Budget-----get_stock_distribution--")
+    print (budget)
     print("---Iam inside this function-----get_stock_distribution--")
-    print(budget)
-    input_dict = json.loads(search_list)
-    budget = int(input_dict["budget"])
-    print("Budget:", budget)
-    print("Companies to invest in:")
-    for company in search_list:
-        print(f"- {company}")
     
-    ticker_symbols = input_dict["search_list"].split(", ")
-    
-    Data = yf.download(ticker_symbols, start ='2022-01-01')['Adj Close']
+    input_data = search_list['search_list'].split(',')
+    print("---Iam inside this function printing input data-----get_stock_distribution--")
+    print (input_data)
+    print("---Iam inside this function printing number of stocks provided -----get_stock_distribution--")
+    print (len(input_data))
+    print("---Iam inside this function printing input data-----get_stock_distribution--")
+    print ("after tickers")
+    nInpCnt = len(input_data)
+    Data = yf.download(input_data, start ='2022-01-01')['Adj Close']
     print(Data)
     assets = Data.columns.tolist()
     returns = Data.pct_change(1).dropna()
     cov = np.array(returns.cov())
     mean = returns.mean()
     prices = Data.iloc[-1]
-    iv = [Integer(f'x_{i}', upper_bound=10) for i in range(4)]
+    iv = [Integer(f'x_{i}', upper_bound=10) for i in range(nInpCnt)]
     cqm = ConstrainedQuadraticModel()
-    cqm.set_objective(quicksum(quicksum(iv[i]*iv[j]*prices[i]*prices[j]*cov[i,j] for j in range(4)) for i in range(4)))
+    cqm.set_objective(quicksum(quicksum(iv[i]*iv[j]*prices[i]*prices[j]*cov[i,j] for j in range(nInpCnt)) for i in range(nInpCnt)))
     budget = 10000
-    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(4)) <=budget)
-    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(4))  >= 0.98 * budget)
+    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt)) <=budget)
+    cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt))  >= 0.98 * budget)
     cqm_sampler = LeapHybridCQMSampler(token='DEV-c398268cb2d92fe3038d906bd2bfb8b4dba9d923')
     sample_set = cqm_sampler.sample_cqm(cqm,label='investment_with_4 optimization new')
 
@@ -110,6 +112,7 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     optim_weights = np.multiply(number_stocks,prices)
     optim_weights = optim_weights / np.sum(optim_weights)
     final_output = {}
+    print (optim_weights)
     for idx in range(0, len(assets)):
         final_output[assets[idx]] = optim_weights[idx]
     return json.dumps(final_output)
