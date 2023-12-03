@@ -76,8 +76,10 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     print("---Iam inside this function printing number of stocks provided -----get_stock_distribution--")
     print (len(input_data))
     print("---Iam inside this function printing input data-----get_stock_distribution--")
-    print ("after tickers")
     nInpCnt = len(input_data)
+    budget = search_list['budget']
+    print("---Iam inside this function printing input data-----get_stock_distribution--")
+    print ("after tickers")
     Data = yf.download(input_data, start ='2022-01-01')['Adj Close']
     print(Data)
     assets = Data.columns.tolist()
