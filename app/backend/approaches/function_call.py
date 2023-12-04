@@ -30,7 +30,7 @@ TOOLS = [
             "type": "function",
             "function": {
                 "name": "get_stock_data",
-                "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year)",
+                "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year) This will return the result based on Dwave's Quantum Annealer",
                 "parameters": {
                     "type": "object",
                     "properties": {
