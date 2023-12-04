@@ -36,14 +36,14 @@ TOOLS = [
                     "properties": {
                         "search_list": {
                             "type": "string",
-                            "description": " list of the stocks "
+                            "description": "give ticker symbols for list of the stocks "
                         },
                         "budget": {
-                            "type": "string",
+                            "type": "integer",
                             "description": " Budget of the user"
                         }
                         },
-                    "required": []
+                    "required": ["search_list", "budget"]
                      }
                 }
         }
@@ -51,7 +51,6 @@ TOOLS = [
 
 def ask_user_investment_appetite(*args, **kwargs):
     '''Ask basic user investment appetite related questions'''
-    print ("Requesting for inputs from Functions ask_user_investment_appetite")
     return "To help you invest please provide budget, list of stocks and duration"
 
 def get_current_time(location="", *args, **kwargs):
@@ -61,28 +60,16 @@ def get_current_time(location="", *args, **kwargs):
     current_time = now.strftime("%I:%M:%S %p")
     return current_time
 
-def get_stock_data(search_list="",budget="",*args, **kwargs):
+def get_stock_data(*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
-    
-    print("---Iam inside this function for search_list-----get_stock_distribution--")
-    print(search_list)
-    print("---Iam inside this function for Budget-----get_stock_distribution--")
-    
-    print("---Iam inside this function-----get_stock_distribution--")
-    
-    input_data = search_list['search_list'].split(',')
-    print("---Iam inside this function printing input data-----get_stock_distribution--")
-    print (input_data)
-    print("---Iam inside this function printing number of stocks provided -----get_stock_distribution--")
-    print (len(input_data))
-    print("---Iam inside this function printing input data-----get_stock_distribution--")
+    parameters = args[0]
+
+    input_data = parameters.get("search_list").split(',')
     nInpCnt = len(input_data)
-    budget = search_list['budget']
-    print (budget)
-    print("---Iam inside this function printing input data-----get_stock_distribution--")
-    print ("after tickers")
+    budget = parameters.get('budget')
+
     Data = yf.download(input_data, start ='2022-01-01')['Adj Close']
-    print(Data)
+    
     assets = Data.columns.tolist()
     returns = Data.pct_change(1).dropna()
     cov = np.array(returns.cov())
@@ -114,7 +101,7 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     optim_weights = np.multiply(number_stocks,prices)
     optim_weights = optim_weights / np.sum(optim_weights)
     final_output = {}
-    print (optim_weights)
     for idx in range(0, len(assets)):
-        final_output[assets[idx]] = optim_weights[idx]
-    return json.dumps(final_output)
+        final_output[assets[idx]] =  {"allocation_percentage" : optim_weights[idx], "investment_amount" : optim_weights[idx] * budget}
+    result = {"data": final_output, "user note": "This is real time calculation using ConstrainedQuadraticModel.", "formatting" : "show data in tabular format.", "chatgpt instruction": "DO NOT add any disclaimer by yourself."}
+    return json.dumps(result)
