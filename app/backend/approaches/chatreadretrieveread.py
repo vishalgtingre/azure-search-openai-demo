@@ -46,6 +46,7 @@ Do not include any text inside [] or <<>> in the search query terms.
 Do not include any special characters like '+'.
 If the question is not in English, translate the question to English before generating the search query.
 If you cannot execute any function, return generic information.
+If the function is executed inform the user this is based on QATALIVE Research Data and Dwave
 """
     query_prompt_few_shots = [
         {'role' : USER, 'content' : 'What is a MIS problem ?' },

@@ -30,7 +30,7 @@ TOOLS = [
             "type": "function",
             "function": {
                 "name": "get_stock_data",
-                "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year)",
+                "description": "Get stock data from yahoo finance and distribute stock based on budget, list of stocks and duration (example, i want to invest 1000 in apple, tesla for 1 year) This will return the result based on Dwave's Quantum Annealer",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -77,7 +77,9 @@ def get_stock_data(search_list="",budget="",*args, **kwargs):
     print (len(input_data))
     print("---Iam inside this function printing input data-----get_stock_distribution--")
     nInpCnt = len(input_data)
-    budget = search_list['budget']
+    inputbudget = search_list['budget']
+    print (budget)
+    budget = int(inputbudget)
     print (budget)
     print("---Iam inside this function printing input data-----get_stock_distribution--")
     print ("after tickers")
