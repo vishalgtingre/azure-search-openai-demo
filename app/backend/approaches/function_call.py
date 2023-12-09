@@ -49,6 +49,40 @@ TOOLS = [
                     "required": ["search_list", "budget"]
                      }
                 }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_vehicle_route_details",
+                "description": "Help user for vehicle route optimization for logistics, ask user basic details regarding his supply chain. Route optimization, Vehicle routing, Fleet management,Logistics optimization, Transportation planning.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        },
+                    "required": []
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "vehicle_routing_optimization",
+                "description": "Finding the most efficient routes for a fleet of vehicles to deliver goods or services to a set of locations.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "number_of_vehicles": {
+                            "type": "integer",
+                            "description": "give number of vehicles.",
+                        },
+                        "number_of_nodes": {
+                            "type": "integer",
+                            "description": " Number of nodes/locations."
+                        }
+                        },
+                    "required": ["number_of_vehicles", "number_of_nodes"]
+                }
+            }
         }
 ]
 
@@ -112,3 +146,15 @@ def get_stock_data(*args, **kwargs):
     
     result = {"data": final_output, "user note": "This is real time calculation using ConstrainedQuadraticModel.", "formatting" : "show data in tabular format.", "chatgpt instruction": "DO NOT add any disclaimer by yourself."}
     return json.dumps(result)
+
+
+def get_vehicle_route_details():
+    print("------here ask_user_vehicle_route_details")
+    '''Ask vehicle route related questions'''
+    return "To help you optimize vehicle route please provide number of vehciles and number of locations"
+
+
+def vehicle_routing_optimization(*args, **kwargs):
+    print("------here ask_user_vehicle_route_details")
+    '''Ask vehicle route related questions'''
+    return "To help you optimize vehicle route please provide number of vehciles and number of locations"
