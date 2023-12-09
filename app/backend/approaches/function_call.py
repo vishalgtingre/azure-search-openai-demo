@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+
+#for portfolio optimization
 import yfinance as yf
 import numpy as np
 from itertools import product
@@ -9,7 +11,10 @@ from pandas_datareader.data import DataReader
 from dimod import Integer, Binary
 from dimod import quicksum 
 from dimod import ConstrainedQuadraticModel
-from dwave.system import LeapHybridDQMSampler, LeapHybridCQMSampler 
+from dwave.system import LeapHybridDQMSampler, LeapHybridCQMSampler
+
+from approaches.vehicle_routing import optimize_vehicle_route
+
 
 
 TOOLS = [
@@ -66,7 +71,7 @@ TOOLS = [
         {
             "type": "function",
             "function": {
-                "name": "vehicle_routing_optimization",
+                "name": "optimizatie_vehicle_route",
                 "description": "Finding the most efficient routes for a fleet of vehicles to deliver goods or services to a set of locations.",
                 "parameters": {
                     "type": "object",
@@ -149,12 +154,12 @@ def get_stock_data(*args, **kwargs):
 
 
 def get_vehicle_route_details():
-    print("------here ask_user_vehicle_route_details")
     '''Ask vehicle route related questions'''
     return "To help you optimize vehicle route please provide number of vehciles and number of locations"
 
 
-def vehicle_routing_optimization(*args, **kwargs):
-    print("------here ask_user_vehicle_route_details")
+def optimizatie_vehicle_route(*args, **kwargs):
     '''Ask vehicle route related questions'''
-    return "To help you optimize vehicle route please provide number of vehciles and number of locations"
+    parameters = args[0]
+    vehicle_path, cost = optimize_vehicle_route(parameters.get("number_of_nodes"), parameters.get("number_of_vehicles"))
+    return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})
