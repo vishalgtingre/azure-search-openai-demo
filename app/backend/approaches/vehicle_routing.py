@@ -19,7 +19,7 @@ except:
     pass
 
 
-def optimize_vehicle_route(no_of_nodes, no_of_vehicles):
+def calculate_optimize_vehicle_route(no_of_nodes, no_of_vehicles):
     # Initialize the problem by randomly generating the instance
     n = no_of_nodes 
     K = no_of_vehicles

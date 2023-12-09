@@ -13,7 +13,7 @@ from dimod import quicksum
 from dimod import ConstrainedQuadraticModel
 from dwave.system import LeapHybridDQMSampler, LeapHybridCQMSampler
 
-from approaches.vehicle_routing import optimize_vehicle_route
+from approaches.vehicle_routing import calculate_optimize_vehicle_route
 
 
 
@@ -58,8 +58,8 @@ TOOLS = [
         {
             "type": "function",
             "function": {
-                "name": "get_vehicle_route_details",
-                "description": "Help user for vehicle route optimization for logistics, ask user basic details regarding his supply chain. Route optimization, Vehicle routing, Fleet management,Logistics optimization, Transportation planning.",
+                "name": "ask_vehicle_route_details",
+                "description": "Assist logistics, fleet, or transportation managers in optimizing their vehicle routing and scheduling. Vehicle routing problem optimization, fleet management.  Assit in streamline logistics operations, enhance route efficiency, reduce transportation costs, and improve overall fleet management. Key features include route optimization, efficient resource allocation, and strategic planning for vehicle deployment. Ideal for managing deliveries, optimizing travel routes, and ensuring timely operations in logistics and transportation management.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -71,8 +71,8 @@ TOOLS = [
         {
             "type": "function",
             "function": {
-                "name": "optimizatie_vehicle_route",
-                "description": "Finding the most efficient routes for a fleet of vehicles to deliver goods or services to a set of locations.",
+                "name": "optimize_vehicle_route",
+                "description": "Get optimized vehicle route based on fleet size and number of locations. (example, i have 2 vehicles and 5 locations for vehicle routing) This will return the result based on IBM qiskit",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -153,13 +153,14 @@ def get_stock_data(*args, **kwargs):
     return json.dumps(result)
 
 
-def get_vehicle_route_details():
+def ask_vehicle_route_details(*args, **kwargs):
     '''Ask vehicle route related questions'''
     return "To help you optimize vehicle route please provide number of vehciles and number of locations"
 
 
-def optimizatie_vehicle_route(*args, **kwargs):
+def optimize_vehicle_route(*args, **kwargs):
     '''Ask vehicle route related questions'''
     parameters = args[0]
-    vehicle_path, cost = optimize_vehicle_route(parameters.get("number_of_nodes"), parameters.get("number_of_vehicles"))
+
+    vehicle_path, cost = calculate_optimize_vehicle_route(parameters.get("number_of_nodes"), parameters.get("number_of_vehicles"))
     return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})

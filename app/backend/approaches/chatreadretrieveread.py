@@ -375,7 +375,7 @@ If the function is executed inform the user this is based on QATALIVE Research D
                 function_response, messages = self.execute_tool(chat_completion)
                 return function_response, messages
             except Exception as e:
-                pass
+                print("----------Exception-", e)
         elif query_text := response_message.get("content"):
             if query_text.strip() != self.NO_RESPONSE:
                 return query_text, messages
