@@ -35,8 +35,11 @@ TOOLS = [
                     "type": "object",
                     "properties": {
                         "search_list": {
-                            "type": "string",
-                            "description": "give ticker symbols for list of the stocks "
+                            "type": "array",
+                            "description": "give ticker symbols for list of the stocks",
+                            "items": {
+                                "type": "string",
+                            },
                         },
                         "budget": {
                             "type": "integer",
@@ -63,8 +66,11 @@ def get_current_time(location="", *args, **kwargs):
 def get_stock_data(*args, **kwargs):
     '''Ask  user to provide stocks and budget for investment '''
     parameters = args[0]
+    input_data = parameters.get("search_list")
 
-    input_data = parameters.get("search_list").split(',')
+    if isinstance(parameters.get("search_list"), str):
+        input_data = parameters.get("search_list").split(',')
+
     nInpCnt = len(input_data)
     budget = parameters.get('budget')
 
@@ -103,5 +109,6 @@ def get_stock_data(*args, **kwargs):
     final_output = {}
     for idx in range(0, len(assets)):
         final_output[assets[idx]] =  {"allocation_percentage" : optim_weights[idx], "investment_amount" : optim_weights[idx] * budget}
+    
     result = {"data": final_output, "user note": "This is real time calculation using ConstrainedQuadraticModel.", "formatting" : "show data in tabular format.", "chatgpt instruction": "DO NOT add any disclaimer by yourself."}
     return json.dumps(result)
