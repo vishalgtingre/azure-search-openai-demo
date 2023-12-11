@@ -93,7 +93,17 @@ TOOLS = [
 
 def ask_user_investment_appetite(*args, **kwargs):
     '''Ask basic user investment appetite related questions'''
-    return "To help you invest please provide budget, list of stocks and duration"
+    print("Inside ask_user_investment_appetite")
+    data = {
+        "Information Required": ['Budget', 'List of Stocks', 'Investment Duration'],  # Data for the first column
+        "Details": ['Enter amount you are willing to invest', 'interested companies / stocks / equity', 'Duration in number of years'],  # Data for the second column
+        "Example": ['$78,900', 'Tesla Amazon Microsoft', '3 years']  # Data for the third column
+    }
+    df = pd.DataFrame(data)
+    table_string = df.to_string()
+    print(table_string)
+    return table_string
+
 
 def get_current_time(location="", *args, **kwargs):
     if not location:
@@ -126,7 +136,7 @@ def get_stock_data(*args, **kwargs):
     cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt)) <=budget)
     cqm.add_constraint(quicksum(prices[i]*iv[i] for i in range(nInpCnt))  >= 0.98 * budget)
     cqm_sampler = LeapHybridCQMSampler(token='DEV-c398268cb2d92fe3038d906bd2bfb8b4dba9d923')
-    sample_set = cqm_sampler.sample_cqm(cqm,label='investment_with_4 optimization new')
+    sample_set = cqm_sampler.sample_cqm(cqm,label='investmentoptimizationvishal')
 
     a = sample_set.aggregate().record
     cols  = list(a.dtype.names)
