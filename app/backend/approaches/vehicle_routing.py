@@ -58,9 +58,11 @@ def calculate_optimize_vehicle_route(no_of_nodes, no_of_vehicles):
     except NameError as e:
         print("Warning: Please run the cells above first.")
         print(e)
+    print("-------problem start")
     qp = quantum_optimizer.construct_problem(Q, g, c)
+    print("-------construct_problem")
     quantum_solution, quantum_cost = quantum_optimizer.solve_problem(qp)
-
+    print("-------problem solved")
     return quantum_solution, quantum_cost
 
 # Get the data

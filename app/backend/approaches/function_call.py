@@ -160,7 +160,10 @@ def ask_vehicle_route_details(*args, **kwargs):
 
 def optimize_vehicle_route(*args, **kwargs):
     '''Ask vehicle route related questions'''
+    print("-------inside optimize_vehicle_route")
     parameters = args[0]
 
     vehicle_path, cost = calculate_optimize_vehicle_route(parameters.get("number_of_nodes"), parameters.get("number_of_vehicles"))
+    print("----vehicle_path--", vehicle_path)
+    vehicle_path = vehicle_path.tolist()
     return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})

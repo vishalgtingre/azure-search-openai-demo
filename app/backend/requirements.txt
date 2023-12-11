@@ -309,7 +309,7 @@ pandas_datareader==0.10.0
 dimod==0.12.13
 dwave.system==1.21.0
 
-#cplex==22.1.1
+# cplex==22.1.1.0
 qiskit==0.45.1
 qiskit-optimization==0.6.0
 qiskit_algorithms==0.2.1
