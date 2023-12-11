@@ -14,8 +14,9 @@ from dimod import ConstrainedQuadraticModel
 from dwave.system import LeapHybridDQMSampler, LeapHybridCQMSampler
 
 from approaches.vehicle_routing import calculate_optimize_vehicle_route
+from approaches.vehicle_routing_dwave import calculate_optimize_vehicle_route_dwave
 
-
+import requests
 
 TOOLS = [
         {
@@ -83,9 +84,16 @@ TOOLS = [
                         "number_of_nodes": {
                             "type": "integer",
                             "description": " Number of nodes/locations."
+                        },
+                        "list_of_cities": {
+                            "type": "array",
+                            "description": "list of the cities",
+                            "items": {
+                                "type": "string",
+                            },
                         }
                         },
-                    "required": ["number_of_vehicles", "number_of_nodes"]
+                    "required": ["number_of_vehicles", "list_of_cities"]
                 }
             }
         }
@@ -155,15 +163,39 @@ def get_stock_data(*args, **kwargs):
 
 def ask_vehicle_route_details(*args, **kwargs):
     '''Ask vehicle route related questions'''
-    return "To help you optimize vehicle route please provide number of vehciles and number of locations"
+    return "To help you optimize vehicle route please provide number of vehciles and list of citites"
 
 
 def optimize_vehicle_route(*args, **kwargs):
     '''Ask vehicle route related questions'''
-    print("-------inside optimize_vehicle_route")
     parameters = args[0]
 
-    vehicle_path, cost = calculate_optimize_vehicle_route(parameters.get("number_of_nodes"), parameters.get("number_of_vehicles"))
-    print("----vehicle_path--", vehicle_path)
-    vehicle_path = vehicle_path.tolist()
-    return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})
+    number_of_nodes = len(parameters.get("list_of_cities"))
+    number_of_vehicles = parameters.get("number_of_vehicles")
+    #fetch city co-ordinates, and set vectorOfVolume to 100 by default 
+    vectorOfVolume = []
+    vectorOfCapacity =[]
+    city_coordinates = []
+    for city in parameters.get("list_of_cities"):
+        try:
+            vectorOfVolume.append(100)
+            url = 'https://nominatim.openstreetmap.org/search?addressdetails=1&q='+city+'&format=jsonv2&limit=1'
+            response = requests.get(url)
+            if response and response.status_code == 200:
+                data = response.json()
+                location = data[0]
+                city_coordinates.append([float(location['lat']), float(location['lon'])])
+        except Exception as e:
+            city_coordinates.append([random.randint(0, 100), random.randint(0, 100)])
+
+    for i in range(0, number_of_vehicles):
+        vectorOfCapacity.append(int(100 * number_of_nodes /number_of_vehicles ) + 50) 
+        
+    if number_of_nodes <=3:
+        vehicle_path, cost = calculate_optimize_vehicle_route(number_of_nodes, number_of_vehicles)
+        vehicle_path = vehicle_path.tolist()
+        return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})
+    else:
+        data = calculate_optimize_vehicle_route_dwave(number_of_vehicles, number_of_nodes, vectorOfVolume, vectorOfCapacity, city_coordinates)
+        return json.dumps(data)
+

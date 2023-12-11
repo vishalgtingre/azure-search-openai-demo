@@ -7,18 +7,17 @@ import numpy as np
 import pandas as pd
 import ast
 import itertools
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+
 import random
 import math
-from scipy.spatial import distance
+
 import time
 import re
-import matplotlib.pyplot as plt
+
 import random
 
 
-def optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vectorOfVolume = [], vectorOfCapacity =[], city_coordinates =[]):
+def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vectorOfVolume = [], vectorOfCapacity =[], city_coordinates =[]):
     cqm = ConstrainedQuadraticModel()
     # Define the binary variables
     x = {(i, d): Binary('x{}_{}'.format(i, d)) for i in range(nbOfPointToCluster) for d in range(nbOfVehicle)}
@@ -133,5 +132,6 @@ def optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vecto
             'Number of cities covered': num_cities_covered,
             'Total Distance Travelled': f"{total_distance:.3f}"
         })
+    print("----vehicles_info-", vehicles_info)
     return vehicles_info
 
