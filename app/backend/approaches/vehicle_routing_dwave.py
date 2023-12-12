@@ -16,6 +16,25 @@ import re
 
 import random
 
+from math import radians, sin, cos, sqrt, atan2
+
+def haversine(lat1, lon1, lat2, lon2):
+    # Convert latitude and longitude from degrees to radians
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    # Radius of the Earth in kilometers (mean value)
+    R = 6371.0
+
+    # Calculate the distance
+    distance = R * c
+
+    return distance
 
 def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vectorOfVolume = [], vectorOfCapacity =[], city_coordinates =[], city_list = []):
     cqm = ConstrainedQuadraticModel()
@@ -23,9 +42,20 @@ def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster =
     x = {(i, d): Binary('x{}_{}'.format(i, d)) for i in range(nbOfPointToCluster) for d in range(nbOfVehicle)}
 
     # Generate random costs between each pair of cities
-    matrixOfCost = [[0 if i == j else math.sqrt((city_coordinates[i][0] - city_coordinates[j][0])**2 + 
-                                             (city_coordinates[i][1] - city_coordinates[j][1])**2) 
-                 for j in range(nbOfPointToCluster)] for i in range(nbOfPointToCluster)]
+    # matrixOfCost = [[0 if i == j else math.sqrt((city_coordinates[i][0] - city_coordinates[j][0])**2 + 
+                                            #  (city_coordinates[i][1] - city_coordinates[j][1])**2) 
+                #  for j in range(nbOfPointToCluster)] for i in range(nbOfPointToCluster)]
+    
+    matrixOfCost = []
+    for i in range(nbOfPointToCluster):
+        temp_distance =[]
+        for j in range(nbOfPointToCluster):
+            if i == j:
+                temp_distance.append(0)
+            else:
+                temp_distance.append(haversine(city_coordinates[i][0], city_coordinates[i][1], city_coordinates[j][0], city_coordinates[j][1]))
+        matrixOfCost.append(temp_distance)
+
     print("---matrixOfCost--", matrixOfCost, "------city_coordinates", city_coordinates)
     
     # Define the objective function
