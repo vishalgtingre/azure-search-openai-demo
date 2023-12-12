@@ -101,7 +101,7 @@ TOOLS = [
 
 def ask_user_investment_appetite(*args, **kwargs):
     '''Ask basic user investment appetite related questions'''
-    return "To help you invest please provide budget, list of stocks and duration"
+    return " To help you invest please provide budget, list of stocks "
 
 def get_current_time(location="", *args, **kwargs):
     if not location:
@@ -122,7 +122,7 @@ def get_stock_data(*args, **kwargs):
     budget = parameters.get('budget')
 
     Data = yf.download(input_data, start ='2022-01-01')['Adj Close']
-    
+    print(Data)
     assets = Data.columns.tolist()
     returns = Data.pct_change(1).dropna()
     cov = np.array(returns.cov())

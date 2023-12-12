@@ -9,11 +9,10 @@ export type ExampleModel = {
 
 const EXAMPLES: ExampleModel[] = [
     {
-        text: "What is Modern Portfolio Theory?",
-        value: "What is Modern Portfolio Theory?"
+        text: "Discover Quantum Financial Strategies ",
+        value: "I want to invest money to make some profits ?"
     },
-    { text: "What is a Quadratic Assignment Problem ?", value: "What is a Quadratic Assignment Problem ?" },
-    { text: "What are Combinatorial optimization Problems", value: "What are Combinatorial optimization Problems ?" }
+    { text: "Solve Complex logistics problems ", value: "I am a Logistic Manager and I want to optimize routes for my Vehicles" }
 ];
 
 interface Props {
