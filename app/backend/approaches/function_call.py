@@ -81,9 +81,17 @@ TOOLS = [
                             "type": "integer",
                             "description": "give number of vehicles.",
                         },
-                        "number_of_nodes": {
+                        "depot": {
+                            "type": "string",
+                            "description": " Starting location."
+                        },
+                        "vechicle_capacity": {
                             "type": "integer",
-                            "description": " Number of nodes/locations."
+                            "description": " Capacity in the vehicle."
+                        },
+                        "demand": {
+                            "type": "integer",
+                            "description": " Demand from each city."
                         },
                         "list_of_cities": {
                             "type": "array",
@@ -163,7 +171,7 @@ def get_stock_data(*args, **kwargs):
 
 def ask_vehicle_route_details(*args, **kwargs):
     '''Ask vehicle route related questions'''
-    return "To help you optimize vehicle route please provide number of vehciles and list of citites"
+    return "To help you optimize vehicle route please provide number of vehciles, list of citites, depot,vechicle capacity and demand from the cities."
 
 
 def optimize_vehicle_route(*args, **kwargs):
@@ -172,13 +180,15 @@ def optimize_vehicle_route(*args, **kwargs):
 
     number_of_nodes = len(parameters.get("list_of_cities"))
     number_of_vehicles = parameters.get("number_of_vehicles")
+    demand = parameters.get("demand")
+    vechicle_capacity = parameters.get("vechicle_capacity")
     #fetch city co-ordinates, and set vectorOfVolume to 100 by default 
     vectorOfVolume = []
     vectorOfCapacity =[]
     city_coordinates = []
     for city in parameters.get("list_of_cities"):
         try:
-            vectorOfVolume.append(100)
+            vectorOfVolume.append(demand)
             url = 'https://nominatim.openstreetmap.org/search?addressdetails=1&q='+city+'&format=jsonv2&limit=1'
             response = requests.get(url)
             if response and response.status_code == 200:
@@ -187,15 +197,17 @@ def optimize_vehicle_route(*args, **kwargs):
                 city_coordinates.append([float(location['lat']), float(location['lon'])])
         except Exception as e:
             city_coordinates.append([random.randint(0, 100), random.randint(0, 100)])
+    if len(vectorOfVolume)>0:
+        vectorOfVolume[0] = 0
 
     for i in range(0, number_of_vehicles):
-        vectorOfCapacity.append(int(100 * number_of_nodes /number_of_vehicles ) + 50) 
+        vectorOfCapacity.append(vechicle_capacity) 
         
     if number_of_nodes <=3:
         vehicle_path, cost = calculate_optimize_vehicle_route(number_of_nodes, number_of_vehicles)
         vehicle_path = vehicle_path.tolist()
-        return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path})
+        return json.dumps({"quantum cost": cost, "vehicle_path":vehicle_path, "summary": "This problem is solved using IBM."})
     else:
-        data = calculate_optimize_vehicle_route_dwave(number_of_vehicles, number_of_nodes, vectorOfVolume, vectorOfCapacity, city_coordinates)
-        return json.dumps(data)
+        data = calculate_optimize_vehicle_route_dwave(number_of_vehicles, number_of_nodes, vectorOfVolume, vectorOfCapacity, city_coordinates, parameters.get("list_of_cities"))
+        return json.dumps({"vehicle_route_info":data, "summary": "This problem is solved using dwave.", "formatting" : "show data in tabular format."})
 

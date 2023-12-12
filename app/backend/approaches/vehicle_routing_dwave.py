@@ -17,7 +17,7 @@ import re
 import random
 
 
-def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vectorOfVolume = [], vectorOfCapacity =[], city_coordinates =[]):
+def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster = 10, vectorOfVolume = [], vectorOfCapacity =[], city_coordinates =[], city_list = []):
     cqm = ConstrainedQuadraticModel()
     # Define the binary variables
     x = {(i, d): Binary('x{}_{}'.format(i, d)) for i in range(nbOfPointToCluster) for d in range(nbOfVehicle)}
@@ -26,6 +26,7 @@ def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster =
     matrixOfCost = [[0 if i == j else math.sqrt((city_coordinates[i][0] - city_coordinates[j][0])**2 + 
                                              (city_coordinates[i][1] - city_coordinates[j][1])**2) 
                  for j in range(nbOfPointToCluster)] for i in range(nbOfPointToCluster)]
+    print("---matrixOfCost--", matrixOfCost, "------city_coordinates", city_coordinates)
     
     # Define the objective function
     objective = quicksum(matrixOfCost[i][j] * x[(i,d)] * x[(j,d)] for i in range(nbOfPointToCluster) for j in range(i+1, nbOfPointToCluster) for d in range(nbOfVehicle))
@@ -111,8 +112,11 @@ def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster =
     vehicles_info = []
     # Calculate the information for each vehicle
     for d in range(nbOfVehicle):
+        route_city_list = []
         # Extract the route for vehicle 'd'
         route = [i for i in range(nbOfPointToCluster) if cities_clusters[i, d] == 1]  
+        for city in route:
+            route_city_list.append(city_list[city])
         # Calculate the total demand for the route
         total_demand_of_cluster = sum(vectorOfVolume[city] for city in route)
         # Calculate the capacity utilization
@@ -123,6 +127,7 @@ def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster =
         total_distance = sum(matrixOfCost[route[i]][route[i + 1]] for i in range(len(route) - 1))
         total_distance += matrixOfCost[route[-1]][0] + matrixOfCost[0][route[0]]  # Complete the round trip
         # Append the information to the list
+        print("--------total", total_distance)
         vehicles_info.append({
             'Cluster': f'Cluster {d + 1}',
             'Total demand of the cluster': total_demand_of_cluster,  # Include the total demand
@@ -130,7 +135,8 @@ def calculate_optimize_vehicle_route_dwave(nbOfVehicle = 5, nbOfPointToCluster =
             'Vehicle Capacity': vectorOfCapacity[d],
             'Capacity utilization': f"{capacity_utilization:.3f}",
             'Number of cities covered': num_cities_covered,
-            'Total Distance Travelled': f"{total_distance:.3f}"
+            'Total Distance Travelled': f"{total_distance:.3f}",
+            "Route":route_city_list
         })
     print("----vehicles_info-", vehicles_info)
     return vehicles_info
